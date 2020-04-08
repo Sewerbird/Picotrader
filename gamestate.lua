@@ -4,7 +4,7 @@ function create_game_state()
   return {
     day_of_simulation = 0,
     current_planet_scene = "warpspace",
-    destination_planet_scene = "byzantium II",
+    destination_planet_scene = "durruti",
     active_interface = "root_interface",
     player = {
       wallet_balance = 100,
@@ -25,14 +25,14 @@ function create_game_state()
           {x= 127, y= 90, r= 80, c = 15}, --sunlit horizon
           {x= 130, y= 95, r= 80, c = 4} --shadowed planet
         },
-        specks = times(function()
+        sprites = times(function()
           local t = rnd()
           local u = rnd() + rnd()
           local r = u
           if r > 1 then
             r = 2 - u
           end
-          return {x= flr((80-2)*r*cos(t)+(127)), y= flr((80-2)*r*sin(t)+(90)), c= 0, r= 1}
+          return {spr= 0, x= flr((80-2)*r*cos(t)+(127)), y= flr((80-2)*r*sin(t)+(90)), c= 0, r= 1}
         end, 200)
       }
     },
@@ -71,7 +71,7 @@ function create_game_state()
         label = "vera cruz",
       }
     },
-    ["byzantium II"] = {
+    byzantium = {
       ticker = 0,
       wallet_balance = 1000,
       tax_rate = 20,
@@ -79,7 +79,7 @@ function create_game_state()
       production = { sundries = 10, doodads = 15, boomerangs = 2, meat = 3, salad = 2, steel = 4, cola = 8, chips = 7 },
       consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
       picture = {
-        label = "byzantium II",
+        label = "byzantium",
         suns = {{x= 64, y= 64, r= 6, c= 7, c1= 7, c2= 7}},
         planets = {
           {x= 64, y= 145, r= 80, c = 6}, --sunlit horizon

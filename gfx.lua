@@ -44,11 +44,11 @@ function draw_planet_scene(scene)
     local l_x = lerp(clamp(ticker,0,60)/60,v.x+127,v.x)
     circfill(l_x, v.y, v.r, v.c) 
   end)
-  --Specks
-  each(picture.specks,function(v) 
-    -- Specks gets scrolled in from righthand of screen to its position (meant to be on the planet)
+  --Sprites
+  each(picture.sprites,function(v) 
+    --Sprites are asssumed to be relative to the planet, so scroll in with it
     local l_x = lerp(clamp(ticker,0,60)/60,v.x+127,v.x)
-    circ(l_x, v.y, v.r, v.c) 
+    spr(v.spr, l_x, v.y) 
   end)
   -- Name Label
   rectfill(1,1,40,8,0)
