@@ -132,9 +132,9 @@ function purchase_interface(location)
         local w = t.w
         local h = t.r_h
         local c_x = left+(w/2)
-        local sell_price = game_state[interface.current_location].inventory[key].buy_price
-        local buy_price = game_state[interface.current_location].inventory[key].sell_price
-        local avg_price = game_state.player.inventory[key].avg_price
+        local sell_price = game_state[interface.current_location].business[key].buy_price
+        local buy_price = game_state[interface.current_location].business[key].sell_price
+        local avg_price = game_state.player.business[key].avg_price
         rectfill(0,top,127, top+h, 5) --Background
         rect(0,top,127, top+h, 1) --Background border
         rectfill(left,top,left+w, top+h, 13) --Center column background
@@ -142,8 +142,8 @@ function purchase_interface(location)
         spr(sprite_id, c_x-4, top+1) --Good Sprite
         print_centered_text_in_rect("+$"..flr(sell_price+0.5), left, top, c_x-4-8, top+h, avg_price > sell_price and 8 or 11) --Sell Amount
         print_centered_text_in_rect("-$"..flr(buy_price+0.5), c_x+4+8, top, left+w, top+h, avg_price < buy_price and 8 or 11) --Buy Amount
-        trader_amount = game_state[interface.current_location].inventory[key].amount
-        player_amount = game_state.player.inventory[key].amount
+        trader_amount = game_state[interface.current_location].business[key].inventory
+        player_amount = game_state.player.business[key].inventory
         print(trader_amount, 4, top+1+2, 11) --City Stock Amount
         print(player_amount, left+w+4, top+1+2, 11) --Ship Stock Amount
         i = i + 1
@@ -300,7 +300,7 @@ function info_interface(location)
                mid_x + r*(1-(i+1)*0.2)*cos(a),mid_y+r*(1-(i+1)*0.2)*sin(a), scales[i])
         end
         -- # Evaluation lines
-        net_production = game_state[interface.current_location].production[trade_good_keys[i]] - game_state[interface.current_location].consumption[trade_good_keys[i]]
+        net_production = game_state[interface.current_location].business[trade_good_keys[i]].net_production
         score = 0.8 * (clamp(net_production, -10, 10) + 10)/20
         local me_x = mid_x+r*score*cos(a)
         local me_y = mid_y+r*score*sin(a)

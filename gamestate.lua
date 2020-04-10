@@ -1,5 +1,17 @@
 -- # GAME STATE & MUTATIONS
 
+function init_business(inventory, base_production, base_consumption)
+  trade_good_keys = {"sundries", "boomerangs", "meat", "salad", "steel", "cola", "chips", "doodads"}
+  local result = {}
+  for good in all(trade_good_keys) do
+    result[good] = {
+      base_price = 100, max_price_multiplier= 4, base_production= base_production, base_consumption= base_consumption,
+      net_production = base_production - base_consumption, buy_price = 0, avg_price = 0, sell_price= 0, inventory= inventory
+    }
+  end
+  return result
+end
+
 function create_game_state()
   return {
     day_of_simulation = 0,
@@ -9,25 +21,13 @@ function create_game_state()
     player = {
       wallet_balance = 100,
       storage_remaining = 100,
-      inventory = mapo(trade_good_keys, function(key) return v, {amount = 0, avg_price = 0} end)
+      business = init_business(0,0,0),
     },
     durruti = {
       ticker = 0,
       wallet_balance = 1000,
       tax_rate = 15,
-      inventory = mapo(trade_good_keys, function(key) return v, {amount = 0, buy_price = 0, sell_price = 0} end),
-      economy = {
-        sundries = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        doodads = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        boomerangs = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        meat = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        salad = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        steel = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        cola = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-        chips = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
-      },
-      production = { sundries = 2, doodads = 2, boomerangs = 5, meat = 0, salad = 3, steel = 15, cola = 5, chips = 5 },
-      consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
+      business = init_business(80,0,0),
       picture = {
         label = "durruti",
         suns = {{x= 80, y= 14, r= 3, c= 10, c1= 7, c2= 15}},
@@ -50,9 +50,7 @@ function create_game_state()
       ticker = 0,
       wallet_balance = 1000,
       tax_rate = 10,
-      inventory = mapo(trade_good_keys, function(key) return v, {amount = rndi(100), buy_price = 0, sell_price = 0} end),
-      production = { sundries = 5, doodads = 2, boomerangs = 0, meat = 8, salad = 15, steel = 2, cola = 5, chips = 3 },
-      consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
+      business = init_business(0,0,0),
       picture = {
         label = "aragon",
         suns = {{x= 30, y= 30, r= 3, c= 10, c1= 8, c2= 9}},
@@ -62,9 +60,7 @@ function create_game_state()
       ticker = 0,
       wallet_balance = 1000,
       tax_rate = 25,
-      inventory = mapo(trade_good_keys, function(key) return v, {amount = rndi(100), buy_price = 0, sell_price = 0} end),
-      production = { sundries = 3, doodads = 3, boomerangs = 15, meat = 10, salad = 5, steel = 4, cola = 3, chips = 2 },
-      consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
+      business = init_business(0,0,0),
       picture = {
         label = "sutek",
         suns = {{x= 20, y= 76, r= 3, c= 7, c1= 8, c2= 12}},
@@ -74,9 +70,7 @@ function create_game_state()
       ticker = 0,
       wallet_balance = 1000,
       tax_rate = 10,
-      inventory = mapo(trade_good_keys, function(key) return v, {amount = rndi(100), buy_price = 0, sell_price = 0} end),
-      production = { sundries = 7, doodads = 8, boomerangs = 2, meat = 3, salad = 2, steel = 4, cola = 3, chips = 15 },
-      consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
+      business = init_business(0,0,0),
       picture = {
         label = "vera cruz",
       }
@@ -85,9 +79,7 @@ function create_game_state()
       ticker = 0,
       wallet_balance = 1000,
       tax_rate = 20,
-      inventory = mapo(trade_good_keys, function(key) return v, {amount = rndi(100), buy_price = 0, sell_price = 0} end),
-      production = { sundries = 10, doodads = 15, boomerangs = 2, meat = 3, salad = 2, steel = 4, cola = 8, chips = 7 },
-      consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
+      business = init_business(0,0,0),
       picture = {
         label = "byzantium",
         suns = {{x= 64, y= 64, r= 6, c= 7, c1= 7, c2= 7}},
@@ -120,7 +112,7 @@ function create_game_state()
     info_interface = info_interface("durruti"),
     news_ticker = {
       scroll_x = -127,
-      news = "Welcome abord, trader: the world is at your fingertips"
+      news = "Welcome aboard, trader: the world is at your fingertips"
     }
   }
 end
@@ -143,12 +135,12 @@ end
 function buy_from_trader(trader, buyer, good, amount)
   local unit_price
   if(trader == 'player') then 
-    unit_price = game_state[buyer].inventory[good].buy_price
+    unit_price = game_state[buyer].business[good].buy_price
   else 
-    unit_price = game_state[trader].inventory[good].sell_price 
+    unit_price = game_state[trader].business[good].sell_price 
   end
   local price = unit_price * amount
-  if(game_state[trader].inventory[good].amount < amount) then
+  if(game_state[trader].business[good].inventory < amount) then
     return false, "Not enough stock"
   end
   if(game_state[buyer].storage_remaining and game_state[buyer].storage_remaining < amount) then
@@ -160,16 +152,16 @@ function buy_from_trader(trader, buyer, good, amount)
   -- # Player-specific bookeeping
   if buyer == 'player' then
     game_state[buyer].storage_remaining -= amount
-    game_state[buyer].inventory[good].avg_price = 
-      (game_state[buyer].inventory[good].avg_price * game_state[trader].inventory[good].amount + unit_price * amount) 
-      / (game_state[buyer].inventory[good].amount + amount)
+    game_state[buyer].business[good].avg_price = 
+      (game_state[buyer].business[good].avg_price * game_state[trader].business[good].inventory + unit_price * amount) 
+      / (game_state[buyer].business[good].inventory + amount)
   end
   if trader == 'player' then
     game_state[trader].storage_remaining += amount
   end
-  game_state[trader].inventory[good].amount -= amount
+  game_state[trader].business[good].inventory -= amount
   game_state[trader].wallet_balance += price
-  game_state[buyer].inventory[good].amount += amount
+  game_state[buyer].business[good].inventory += amount
   game_state[buyer].wallet_balance -= price
   -- # Planet specific bookkeeping
   if buyer == 'player' then reevaluate_price(trader, good) end
@@ -203,9 +195,15 @@ function produce_and_consume_goods(planet)
   --TODO figure out if planets should have wallets
   if game_state[planet].wallet_balance < 1000 then game_state[planet].wallet_balance += 1000 end 
   for good in all(trade_good_keys) do
-    game_state[planet].inventory[good].amount += game_state[planet].production[good]
-    game_state[planet].inventory[good].amount -= game_state[planet].consumption[good]
-    game_state[planet].inventory[good].amount = clamp(game_state[planet].inventory[good].amount, 0, 127)
+    local net_production = game_state[planet].business[good].base_production - game_state[planet].business[good].base_consumption
+    for event in all(events) do
+      if event.target == planet then
+        net_production += event.production[good] and event.production[good] or 0
+        net_production -= event.consumption[good] and event.consumption[good] or 0
+      end
+    end
+    game_state[planet].business[good].inventory += net_production
+    game_state[planet].business[good].inventory = clamp(game_state[planet].business[good].inventory, 0, 127)
   end
 end
 
@@ -216,7 +214,7 @@ function reevaluate_prices(planet)
 end
 
 function reevaluate_price(planet, trade_good)
-  local in_stock = game_state[planet].inventory[trade_good].amount
+  local in_stock = game_state[planet].business[trade_good].inventory
   local tax_rate = game_state[planet].tax_rate --margin the planet wants sales to you
   local desired_stock = 64 --quantity desired TODO make this planet specific
   local base_price = 5 --price when satisifed TODO make this good-specific (planet specific too?)
@@ -226,7 +224,7 @@ function reevaluate_price(planet, trade_good)
   local base_price_multiplier = f0*2.71828^((in_stock/desired_stock)*neg_ln_4)
   local today_buy = base_price * base_price_multiplier
   local today_sell = base_price * base_price_multiplier * (1+tax_rate/100)
-  game_state[planet].inventory[trade_good].buy_price = today_buy
-  game_state[planet].inventory[trade_good].sell_price = today_sell
+  game_state[planet].business[trade_good].buy_price = today_buy
+  game_state[planet].business[trade_good].sell_price = today_sell
 end
 
