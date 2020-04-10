@@ -16,6 +16,16 @@ function create_game_state()
       wallet_balance = 1000,
       tax_rate = 15,
       inventory = mapo(trade_good_keys, function(key) return v, {amount = 0, buy_price = 0, sell_price = 0} end),
+      economy = {
+        sundries = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        doodads = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        boomerangs = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        meat = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        salad = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        steel = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        cola = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+        chips = {base_price= 100, max_price_multiplier= 4, base_production= 2, base_consumption= 5, buy_price=0, sell_price= 0, inventory= 0 },
+      },
       production = { sundries = 2, doodads = 2, boomerangs = 5, meat = 0, salad = 3, steel = 15, cola = 5, chips = 5 },
       consumption = { sundries = 5, doodads = 5, boomerangs = 5, meat = 5, salad = 5, steel = 5, cola = 5, chips = 5 },
       picture = {
@@ -102,10 +112,12 @@ function create_game_state()
         end, 200, {col= {7,7,6,5,1,2}})
       }
     },
-    trade_interface = create_purchase_interface("durruti"),
-    root_interface = create_root_interface("durruti"),
-    map_interface = create_map_interface("durruti"),
-    info_interface = create_info_interface("durruti"),
+    events = {
+    },
+    trade_interface = purchase_interface("durruti"),
+    root_interface = root_interface("durruti"),
+    map_interface = map_interface("durruti"),
+    info_interface = info_interface("durruti"),
     news_ticker = {
       scroll_x = -127,
       news = "Welcome abord, trader: the world is at your fingertips"
@@ -115,6 +127,10 @@ end
 
 function update_scene(scene)
   game_state[scene].ticker += 1
+  --Update the news ticker
+  game_state.news_ticker.scroll_x += 1
+  if(game_state.news_ticker.scroll_x > 4 * #game_state.news_ticker.news) then game_state.news_ticker.scroll_x = -127 end
+  --Update warpspace if animating
   if scene == 'warpspace' then
     if game_state.warpspace.ticker > game_state.warpspace.travel_time then
       game_state.current_planet_scene = game_state.destination_planet_scene
@@ -173,6 +189,12 @@ end
 function generate_news(planet)
   --TODO generate events dynamically here to impact the planets, and then report on them here
   game_state.news_ticker.news = "Sutek chip production embargoed by Byzantine fleet over conflicts with House Hazat. Vera Cruz hostilities continue to affect cola supplies. Aragon undergoing a fad diet, increasing demand for meat and salads."
+  event = {
+    target= "durruti",
+    effect= { inventory= {sundries= 10}},
+    text= "Durruti experiencing a glut of sundries.",
+    duration= 3
+  }
 end
 
 function produce_and_consume_goods(planet)

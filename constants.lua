@@ -1,6 +1,7 @@
 -- GLOBALS & CONSTANTS
 
 game_state = nil
+directions = {'left','right','up','down'}
 trade_good_keys = {"sundries", "boomerangs", "meat", "salad", "steel", "cola", "chips", "doodads"}
 trade_goods = {
   sundries = {sprite_id = 1},

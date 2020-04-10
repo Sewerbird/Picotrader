@@ -23,7 +23,6 @@ function _draw()
     draw_warp_scene()
   else
     draw_planet_scene(game_state.current_planet_scene)
-    draw_interface()
   end
   --Border
 	rect(0,0,127,127,1)
@@ -32,21 +31,20 @@ end
 function _update()
   --Update the scene
   update_scene(game_state.current_planet_scene)
-  --Update the news ticker
-  game_state.news_ticker.scroll_x += 1
-  if(game_state.news_ticker.scroll_x > 4 * #game_state.news_ticker.news) then game_state.news_ticker.scroll_x = -127 end
   -- Navigating with Cursor
-  local dir = nil
+  local dir
+  local current_splat = game_state[game_state.active_interface].current_splat
+  local tgt = game_state[game_state.active_interface].splats[current_splat]
+
+  --Pressed D-Pad: Navigate to directed splat
   if (btnp(0)) then dir = 'left' end
   if (btnp(1)) then dir = 'right' end
   if (btnp(2)) then dir = 'up' end
   if (btnp(3)) then dir = 'down' end
-  local current_splat = game_state[game_state.active_interface].current_splat
-  local tgt = game_state[game_state.active_interface].splats[current_splat]
   if(tgt and tgt[dir]) then game_state[game_state.active_interface].current_splat = tgt[dir] end
   --Pressed B: Perform the current splat if it has something to do
   if btnp(4) and current_splat then game_state[game_state.active_interface].splats[current_splat].execute() end
-  --Pressed A: Pop the the view stack
+  --Pressed A: Pop the view stack
   if (btnp(5)) then game_state.active_interface = 'root_interface' end
 end
 
