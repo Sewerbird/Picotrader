@@ -194,12 +194,12 @@ function root_interface(trader)
       l_x = 0,
       t_y = 105, --top of interface
       h = 10,
-      tab_w = 30,
+      tab_w = 22,
       w = 80 --width of center column
     },
     draw = function(interface)
       local t = interface.settings
-      local tab_keys = {"trade","map","info"}
+      local tab_keys = {"trade","map","info","ship","bar"}
       local i = 0
       for tab_key in all(tab_keys) do
         local w= t.tab_w
@@ -237,9 +237,23 @@ function root_interface(trader)
     },
     info = {
       x= (t.tab_w+1)*2+ t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
-      up= nil, down= nil, left= 'map', right= nil,
+      up= nil, down= nil, left= 'map', right= 'ship',
       execute= function()
         game_state.active_interface = 'info_interface'
+      end
+    },
+    ship = {
+      x= (t.tab_w+1)*3+ t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      up= nil, down= nil, left= 'info', right= 'bar',
+      execute= function()
+        game_state.active_interface = 'ship_interface'
+      end
+    },
+    bar = {
+      x= (t.tab_w+1)*4+ t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      up= nil, down= nil, left= 'ship', right= nil,
+      execute= function()
+        game_state.active_interface = 'ship_interface'
       end
     },
   }
@@ -328,7 +342,7 @@ function info_interface(location)
       rectfill(l_x+w+2,t_y+2*h_h,127,t_y+3*h_h, 1)
       print_centered_text_in_rect("tax rate",l_x+w+2,t_y+2*h_h,127,t_y+3*h_h, 7)
       rectfill(l_x+w+2,t_y+3*h_h,127,t_y+4*h_h, 0)
-      print_centered_text_in_rect(""..game_state[interface.current_location].tax_rate.."%",l_x+w+2,t_y+3*h_h,127,t_y+4*h_h,7)
+      print_centered_text_in_rect(""..game_state[interface.current_location].business.tax_rate.."%",l_x+w+2,t_y+3*h_h,127,t_y+4*h_h,7)
       rect(l_x+w+2,t_y,127,t_y+4*h_h, 1)
       -- ## Coffers
       rectfill(l_x+w+2,t_y+4*h_h,127,t_y+5*h_h, 1)
@@ -347,6 +361,46 @@ function info_interface(location)
   local splats = {
     [location] = {}
   }
+  result.splats = splats
+  return result
+end
+
+function ship_interface(trader)
+  local result = {
+    active = false,
+    entry_splat = trader,
+    current_splat = trader,
+    current_location = trader,
+    settings = {
+      l_x = 64 - 80/2, --left side of center column
+      t_y = 32, --top of interface
+      w = 80 --width of center column
+    },
+    draw = function(interface)
+      local t = interface.settings
+    end
+  }
+  local splats = {}
+  result.splats = splats
+  return result
+end
+
+function bar_interface(trader)
+  local result = {
+    active = false,
+    entry_splat = trader,
+    current_splat = trader,
+    current_location = trader,
+    settings = {
+      l_x = 64 - 80/2, --left side of center column
+      t_y = 32, --top of interface
+      w = 80 --width of center column
+    },
+    draw = function(interface)
+      local t = interface.settings
+    end
+  }
+  local splats = {}
   result.splats = splats
   return result
 end

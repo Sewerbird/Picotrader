@@ -1,12 +1,14 @@
 -- # GAME STATE & MUTATIONS
 
-function init_business(inventory, base_production, base_consumption)
+function init_business(tax_rate, inventory, base_production, base_consumption)
   trade_good_keys = {"sundries", "boomerangs", "meat", "salad", "steel", "cola", "chips", "doodads"}
-  local result = {}
+  local result = {
+    tax_rate = tax_rate
+  }
   for good in all(trade_good_keys) do
     result[good] = {
-      base_price = 100, max_price_multiplier= 4, base_production= base_production, base_consumption= base_consumption,
-      net_production = base_production - base_consumption, buy_price = 0, avg_price = 0, sell_price= 0, inventory= inventory
+      base_price = 5, desired_stock= 64, base_production= base_production, base_consumption= base_consumption,
+      net_production = base_production - base_consumption, buy_price = 0, avg_price = 0, sell_price= 0, inventory= inventory,
     }
   end
   return result
@@ -19,15 +21,17 @@ function create_game_state()
     destination_planet_scene = "durruti",
     active_interface = "root_interface",
     player = {
-      wallet_balance = 100,
       storage_remaining = 100,
-      business = init_business(0,0,0),
+      wallet_balance = 100,
+      business = init_business(0,50,0,0),
+      events = {},
+      picture = {}
     },
     durruti = {
       ticker = 0,
       wallet_balance = 1000,
-      tax_rate = 15,
-      business = init_business(80,0,0),
+      business = init_business(15, 50,0,0),
+      events = {},
       picture = {
         label = "durruti",
         suns = {{x= 80, y= 14, r= 3, c= 10, c1= 7, c2= 15}},
@@ -38,19 +42,16 @@ function create_game_state()
         sprites = times(function()
           local t = rnd()
           local u = rnd() + rnd()
-          local r = u
-          if r > 1 then
-            r = 2 - u
-          end
-          return {spr= 0, x= flr((80-2)*r*cos(t)+(127)), y= flr((80-2)*r*sin(t)+(90)), c= 0, r= 1}
+          if u > 1 then u = 2 - u end
+          return {spr= 0, x= flr((80-2)*u*cos(t)+(127)), y= flr((80-2)*u*sin(t)+(90)), c= 0, r= 1}
         end, 200)
       }
     },
     aragon = {
       ticker = 0,
       wallet_balance = 1000,
-      tax_rate = 10,
-      business = init_business(0,0,0),
+      business = init_business(10,50,0,0),
+      events = {},
       picture = {
         label = "aragon",
         suns = {{x= 30, y= 30, r= 3, c= 10, c1= 8, c2= 9}},
@@ -59,8 +60,8 @@ function create_game_state()
     sutek = {
       ticker = 0,
       wallet_balance = 1000,
-      tax_rate = 25,
-      business = init_business(0,0,0),
+      business = init_business(25,50,0,0),
+      events = {},
       picture = {
         label = "sutek",
         suns = {{x= 20, y= 76, r= 3, c= 7, c1= 8, c2= 12}},
@@ -69,8 +70,8 @@ function create_game_state()
     ["vera cruz"] = {
       ticker = 0,
       wallet_balance = 1000,
-      tax_rate = 10,
-      business = init_business(0,0,0),
+      business = init_business(10,50,0,0),
+      events = {},
       picture = {
         label = "vera cruz",
       }
@@ -78,8 +79,8 @@ function create_game_state()
     byzantium = {
       ticker = 0,
       wallet_balance = 1000,
-      tax_rate = 20,
-      business = init_business(0,0,0),
+      business = init_business(20,50,0,0),
+      events = {},
       picture = {
         label = "byzantium",
         suns = {{x= 64, y= 64, r= 6, c= 7, c1= 7, c2= 7}},
@@ -104,12 +105,11 @@ function create_game_state()
         end, 200, {col= {7,7,6,5,1,2}})
       }
     },
-    events = {
-    },
     trade_interface = purchase_interface("durruti"),
     root_interface = root_interface("durruti"),
     map_interface = map_interface("durruti"),
     info_interface = info_interface("durruti"),
+    ship_interface = ship_interface("durruti"),
     news_ticker = {
       scroll_x = -127,
       news = "Welcome aboard, trader: the world is at your fingertips"
@@ -171,22 +171,79 @@ end
 
 function advance_simulation()
   game_state.day_of_simulation += 1
+  generate_events()
   for planet in all(planet_keys) do
+    apply_events(planet)
     generate_news(planet)
     produce_and_consume_goods(planet)
     reevaluate_prices(planet)
   end
 end
 
-function generate_news(planet)
-  --TODO generate events dynamically here to impact the planets, and then report on them here
-  game_state.news_ticker.news = "Sutek chip production embargoed by Byzantine fleet over conflicts with House Hazat. Vera Cruz hostilities continue to affect cola supplies. Aragon undergoing a fad diet, increasing demand for meat and salads."
-  event = {
-    target= "durruti",
-    effect= { inventory= {sundries= 10}},
-    text= "Durruti experiencing a glut of sundries.",
-    duration= 3
+function generate_events()
+  --TODO move this out to a global?
+  local possible_events = {
+    {
+      change= function(planet,good) planet.business[good].inventory = 127 end,
+      text= function(planet,good) return "A surplus of "..good.." on "..planet.." causes exports to rise: investors worry about a glut lowering prices" end},
+    {
+      change= function(planet,good) planet.business[good].inventory = 0 end,
+      text= function(planet,good) return "A shortage of "..good.." causes sticker shock on "..planet.." and anger for consumers" end},
+    {
+      change= function(planet,good) planet.business.tax_rate += 25 end,
+      unchange= function(planet,good) planet.business.tax_rate -= 25 end, 
+      text= function(planet,good) return "The Imperial embargo over "..planet.." continues to inflate the tax rate there for all goods" end},
+    {
+      change= function(planet,good) planet.business[good].base_production += 5 end,
+      unchange= function(planet,good) planet.business[good].base_production -= 5 end, 
+      text= function(planet,good) return "Economic forecasts for "..good.." on "..planet.." signal increased production" end},
+    {
+      change= function(planet,good) planet.business[good].base_production -= 5 end,
+      unchange= function(planet,good) planet.business[good].base_production += 5 end, 
+      text= function(planet,good) return "Layoffs at facilities producing "..good.." on "..planet.." presage decreased production" end},
   }
+  local new_event = possible_events[rndi(#possible_events)+1]
+  local new_planet = planet_keys[rndi(#planet_keys)+1]
+  local new_good = trade_good_keys[rndi(#trade_good_keys)+1]
+  local new_duration = rndi(8)
+  add(game_state[new_planet].events, {
+    applied = false,
+    change= new_event.change,
+    duration= new_duration,
+    planet = new_planet,
+    good = new_good,
+    text= new_event.text(new_planet, new_good)
+  })
+end
+
+function apply_events(planet)
+  for event in all(game_state[planet].events) do
+    if not event.applied then
+      event.change(game_state[planet], event.good)
+      event.applied = true
+    end
+    event.duration -= 1
+    if event.duration <= 0 then
+      if event.change_tax then
+        game_state[planet].business.tax_rate -= event.change_tax
+      end
+      if event.unchange then
+        event.unchange(game_state[planet])
+      end
+      del(game_state[planet].events,event)
+    end
+  end
+end
+
+function generate_news(planet)
+  --TODO Make this range-specific or something, since this reports all news in the galaxy
+  local news = ""
+  for planet in all(planet_keys) do
+    for event in all(game_state[planet].events) do
+      news = news.." "..event.text
+    end
+  end
+  game_state.news_ticker.news = news
 end
 
 function produce_and_consume_goods(planet)
@@ -196,6 +253,7 @@ function produce_and_consume_goods(planet)
   if game_state[planet].wallet_balance < 1000 then game_state[planet].wallet_balance += 1000 end 
   for good in all(trade_good_keys) do
     local net_production = game_state[planet].business[good].base_production - game_state[planet].business[good].base_consumption
+    game_state[planet].business[good].net_production = net_production
     for event in all(events) do
       if event.target == planet then
         net_production += event.production[good] and event.production[good] or 0
@@ -215,10 +273,10 @@ end
 
 function reevaluate_price(planet, trade_good)
   local in_stock = game_state[planet].business[trade_good].inventory
-  local tax_rate = game_state[planet].tax_rate --margin the planet wants sales to you
-  local desired_stock = 64 --quantity desired TODO make this planet specific
-  local base_price = 5 --price when satisifed TODO make this good-specific (planet specific too?)
-  local f0 = 4 --base_price multiplier when none in stock.
+  local tax_rate = game_state[planet].business.tax_rate --margin the planet wants sales to you
+  local desired_stock = game_state[planet].business[trade_good].desired_stock --quantity desired
+  local base_price = game_state[planet].business[trade_good].base_price --price when satisifed
+  local f0 = 4 --base_price multiplier when none in stock. TODO Make this planet specific.... need a 'ln' function.
   --printh("Calculating bpm of "..trade_good.." on '"..planet.."' = "..base_price.."*e^(("..in_stock.."/"..desired_stock..")*ln(1/"..f0.."))")
   local neg_ln_4 = -1.3862943611 --ln(1/f0), but Pico doesn't have ln
   local base_price_multiplier = f0*2.71828^((in_stock/desired_stock)*neg_ln_4)
