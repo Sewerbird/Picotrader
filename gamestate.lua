@@ -1,7 +1,6 @@
 -- # GAME STATE & MUTATIONS
 
 function init_business(tax_rate, inventory, base_production, base_consumption)
-  trade_good_keys = {"sundries", "boomerangs", "meat", "salad", "steel", "cola", "chips", "doodads"}
   local result = {
     tax_rate = tax_rate
   }
@@ -14,50 +13,71 @@ function init_business(tax_rate, inventory, base_production, base_consumption)
   return result
 end
 
-function make_planet(name,x,y,lanes,owner)
+function make_planet(name,x,y,lanes,owner_code,type_code,size_code)
+  local atmosphere_class = sub(type_code,1,1)
+  local population_class = sub(type_code,2,2)
+  local owner_class = sub(type_code,3,3)
+  local result = {
+    tax_rate = size_code_multipliers[size_code]*rndi(5)
+  }
+  for good in all(trade_good_keys) do
+    local base_production = size_code_multipliers[size_code]
+    local base_consumption = size_code_multipliers[size_code]
+    printh("type_code: "..type_code)
+    printh("owner_code: "..owner_code)
+    printh("size_code: "..size_code)
+    printh("good: "..good)
+    base_production += (trade_good_mods[good][type_code] or 0) + (trade_good_mods[good][owner_code] or 0)
+    result[good] = {
+      base_price = 5, desired_stock= 64, base_production= base_production, base_consumption= base_consumption,
+      net_production = base_production - base_consumption, buy_price = 0, avg_price = 0, sell_price= 0, inventory= 64,
+    }
+  end
   planet_info[name]={
     name=name, map_x = x, map_y = y, map_r = 2,map_c=12,
     up=lanes.up,left=lanes.left,down=lanes.down,right=lanes.right,
-    owner=owner,
-    type= planet_type_keys[rndi(#planet_type_keys)+1]
+    owner=owner_code,
+    size=size_code,
+    type=type_code,
+    start_economy = result
   }
 end
 
 function create_game_state()
-  make_planet("leminkainan",56,8,{left="ravenna",right="pentateuch"},"locals")
-  make_planet("bannock",32,16,{down="stigmata",right="ravenna"},"local")
-  make_planet("pentateuch",80,16,{left="leminkainan",down="delphi",right="terra"},"empire")
-  make_planet("artemis",112,16,{left="terra"},"locals")
-  make_planet("ravenna",48,24,{left="bannock",up="leminkainan",down="shaprut"},"locals")
-  make_planet("terra",96,24,{left="pentateuch",right="artemis",down="sutek"},"the church")
-  make_planet("stigmata",24,32,{up="bannock",right="istakhr",down="aylon"},"empire")
-  make_planet("shaprut",45,36,{up="ravenna",right="delphi",down="istakhr"},"local")
-  make_planet("delphi",64,32,{up="pentateuch",left="shaprut",right="tethys"},"hawkwood")
-  make_planet("sutek",102,40,{up="terra",left="tethys",down="vera cruz"},"empire")
-  make_planet("istakhr",40,48,{up="shaprut",left="stigmata",down="criticorum"},"al malik")
-  make_planet("tethys",80,48,{left="delphi",right="sutek",down="byzantium"},"local")
-  make_planet("aylon",16,56,{up="stigmata",right="criticorum",down="cadavus"},"empire")
-  make_planet("criticorum",40,64,{up="istakhr",left="aylon",right="byzantium",down="kish"},"local")
-  make_planet("byzantium",64,64,{left="criticorum",right="aragon",down="madoc"},"empire")
-  make_planet("vera cruz",112,64,{up="sutek",left="aragon"},"local")
-  make_planet("cadavus",24,72,{up="aylon",down="severus",right="malignatius"},"empire")
-  make_planet("aragon",88,72,{left="byzantium",right="vera cruz",down="leagueheim"},"hazat")
-  make_planet("de moley",8,80,{right="severus"},"empire")
-  make_planet("kish",48,80,{up="criticorum",left="malignatius",right="madoc",down="icon"},"li halan")
-  make_planet("madoc",64,80,{left="kish",up="byzantium",right="leagueheim"},"local")
-  make_planet("malignatius",32,88,{left="cadavus",right="kish",down="cadiz"},"empire")
-  make_planet("severus",16,96,{left="de moley",right="cadiz",up="cadavus"},"decados")
-  make_planet("leagueheim",80,96,{left="madoc",right="grail",up="aragon",down="rampart"},"the league")
-  make_planet("grail",112,96,{left="leagueheim"},"local")
-  make_planet("cadiz",32,104,{left="severus",right="icon",up="malignatius",down="vril ya"},"local")
-  make_planet("icon",48,104,{left="cadiz",right="midian",up="kish",down="manitou"},"empire")
-  make_planet("midian",64,104,{left="icon",right="rampart",down="apshai"},"local")
-  make_planet("vril ya",16,112,{right="vau",up="cadiz"},"vril ya")
-  make_planet("rampart",80,112,{left="midian",up="leagueheim",right="pandemonium",down="apshai"},"local")
-  make_planet("vau",24,120,{left="vril ya",right="manitou"},"vril_ya")
-  make_planet("manitou",40,120,{left="vau",right="apshai",up="icon"},"empire")
-  make_planet("apshai",56,120,{left="manitou",up="midian",right="rampart"},"local")
-  make_planet("pandemonium",112,120,{left="rampart"},"local")
+  make_planet("leminkainan",56,8,{left="ravenna",right="pentateuch"},"locals","barren","post")
+  make_planet("bannock",32,16,{down="stigmata",right="ravenna"},"locals","barren","post")
+  make_planet("pentateuch",80,16,{left="leminkainan",down="delphi",right="terra"},"empire","barren","post")
+  make_planet("artemis",112,16,{left="terra"},"locals","barren","post")
+  make_planet("ravenna",48,24,{left="bannock",up="leminkainan",down="shaprut"},"locals","barren","post")
+  make_planet("terra",96,24,{left="pentateuch",right="artemis",down="sutek"},"church","ocean","megalopolis")
+  make_planet("stigmata",24,32,{up="bannock",right="istakhr",down="aylon"},"empire","barren","post")
+  make_planet("shaprut",45,36,{up="ravenna",right="delphi",down="istakhr"},"locals","barren","post")
+  make_planet("delphi",64,32,{up="pentateuch",left="shaprut",right="tethys"},"hawkwood","icy","homeworld")
+  make_planet("sutek",102,40,{up="terra",left="tethys",down="vera cruz"},"empire","barren","post")
+  make_planet("istakhr",40,48,{up="shaprut",left="stigmata",down="criticorum"},"al malik","ocean","homeworld")
+  make_planet("tethys",80,48,{left="delphi",right="sutek",down="byzantium"},"locals","barren","post")
+  make_planet("aylon",16,56,{up="stigmata",right="criticorum",down="cadavus"},"empire","barren","post")
+  make_planet("criticorum",40,64,{up="istakhr",left="aylon",right="byzantium",down="kish"},"locals","barren","post")
+  make_planet("byzantium",64,64,{left="criticorum",right="aragon",down="madoc"},"empire","urban","megalopolis")
+  make_planet("vera cruz",112,64,{up="sutek",left="aragon"},"locals","barren","post")
+  make_planet("cadavus",24,72,{up="aylon",down="severus",right="malignatius"},"empire","barren","post")
+  make_planet("aragon",88,72,{left="byzantium",right="vera cruz",down="leagueheim"},"hazat","ocean","homeworld")
+  make_planet("de moley",8,80,{right="severus"},"empire","barren","post")
+  make_planet("kish",48,80,{up="criticorum",left="malignatius",right="madoc",down="icon"},"li halan","barren","homeworld")
+  make_planet("madoc",64,80,{left="kish",up="byzantium",right="leagueheim"},"locals","barren","post")
+  make_planet("malignatius",32,88,{left="cadavus",right="kish",down="cadiz"},"empire","barren","post")
+  make_planet("severus",16,96,{left="de moley",right="cadiz",up="cadavus"},"decados","jungle","homeworld")
+  make_planet("leagueheim",80,96,{left="madoc",right="grail",up="aragon",down="rampart"},"league","urban","megalopolis")
+  make_planet("grail",112,96,{left="leagueheim"},"locals","barren","post")
+  make_planet("cadiz",32,104,{left="severus",right="icon",up="malignatius",down="vril ya"},"locals","barren","post")
+  make_planet("icon",48,104,{left="cadiz",right="midian",up="kish",down="manitou"},"empire","barren","post")
+  make_planet("midian",64,104,{left="icon",right="rampart",down="apshai"},"locals","barren","post")
+  make_planet("vril ya",16,112,{right="vau",up="cadiz"},"vril ya","barren","post")
+  make_planet("rampart",80,112,{left="midian",up="leagueheim",right="pandemonium",down="apshai"},"locals","barren","post")
+  make_planet("vau",24,120,{left="vril ya",right="manitou"},"vril_ya","barren","post")
+  make_planet("manitou",40,120,{left="vau",right="apshai",up="icon"},"empire","barren","post")
+  make_planet("apshai",56,120,{left="manitou",up="midian",right="rampart"},"locals","barren","post")
+  make_planet("pandemonium",112,120,{left="rampart"},"locals","barren","post")
   for k,v in pairs(planet_info) do
     add(planet_keys, k)
   end
@@ -103,8 +123,7 @@ function create_game_state()
   for k in all(planet_keys) do
     if not result[k] then
       local planet_type = planet_types[planet_info[k].type]
-      printh(k.." is "..planet_info[k].type)
-      local s_x = 64+(rndi(16)+16)
+      local s_x = 64+(rndi(64)-32)
       local s_y = rndi(32)+16
       local s_r = rndi(3)+2
       local p_r = 80
@@ -120,6 +139,7 @@ function create_game_state()
         ticker = 0,
         wallet_balance = 1000,
         business = init_business(20,50,0,0),
+        business = planet_info[k].start_economy,
         events = {},
         picture = {
           label = k,
@@ -285,6 +305,7 @@ function produce_and_consume_goods(planet)
   if game_state[planet].wallet_balance < 1000 then game_state[planet].wallet_balance += 1000 end 
   for good in all(trade_good_keys) do
     local net_production = game_state[planet].business[good].base_production - game_state[planet].business[good].base_consumption
+    net_production += rndi(10)-5 --randomness in supply
     game_state[planet].business[good].net_production = net_production
     for event in all(events) do
       if event.target == planet then

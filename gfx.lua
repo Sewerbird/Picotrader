@@ -203,8 +203,8 @@ function purchase_interface(location)
   local w = 80 --width of center column
   local result = {
     active = false,
-    entry_splat = "buy_sundries",
-    current_splat = "buy_sundries",
+    entry_splat = "buy_medicine",
+    current_splat = "buy_medicine",
     current_location = location,
     draw = function(interface)
       --# CENTER COLUMN
@@ -438,6 +438,18 @@ function info_interface(location)
       rectfill(l_x+w+2,t_y+5*h_h,127,t_y+6*h_h, 0)
       print_centered_text_in_rect("$"..game_state[interface.current_location].wallet_balance,l_x+w+2,t_y+5*h_h,127,t_y+6*h_h,7)
       rect(l_x+w+2,t_y,127,t_y+6*h_h, 1)
+      -- ## Planet Type
+      rectfill(l_x+w+2,t_y+6*h_h,127,t_y+7*h_h, 1)
+      print_centered_text_in_rect("Type",l_x+w+2,t_y+6*h_h,127,t_y+7*h_h, 7)
+      rectfill(l_x+w+2,t_y+7*h_h,127,t_y+8*h_h, 0)
+      print_centered_text_in_rect(planet_info[interface.current_location].type,l_x+w+2,t_y+7*h_h,127,t_y+8*h_h,7)
+      rect(l_x+w+2,t_y,127,t_y+8*h_h, 1)
+      -- ## Population Type
+      rectfill(l_x+w+2,t_y+8*h_h,127,t_y+9*h_h, 1)
+      print_centered_text_in_rect("Size",l_x+w+2,t_y+8*h_h,127,t_y+9*h_h, 7)
+      rectfill(l_x+w+2,t_y+9*h_h,127,t_y+10*h_h, 0)
+      print_centered_text_in_rect(planet_info[interface.current_location].size,l_x+w+2,t_y+9*h_h,127,t_y+10*h_h,7)
+      rect(l_x+w+2,t_y,127,t_y+10*h_h, 1)
       --## Active Splat
       local cursor = interface.splats[interface.current_splat]
       if(cursor) then
