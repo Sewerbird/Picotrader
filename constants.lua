@@ -13,26 +13,56 @@ trade_goods = {
   chips = {sprite_id = 7},
   doodads = {sprite_id = 8},
 }
-planet_keys = {"durruti", "sutek", "vera cruz", "byzantium", "aragon"}
-planet_info = {
-  durruti = {
-    map_x = 64, map_y = 96, map_r = 3, map_c = 12, up="aragon",
-    name = "durruti", owner = "the guild", overview = "a barren planet with rich\nreserves of ores and minerals\nnear the surface",
+planet_type_keys = {"jungle","ocean","airless","barren","urban"}
+planet_types = {
+  jungle = {
+    p_c1= 11, p_c2= 3,
+    sprites = function(p_x,p_y,p_r)
+      return {}
+    end
   },
-  sutek = {
-    map_x = 80, map_y = 75, map_r = 3, map_c = 12, up="vera cruz", left="aragon",
-    name = "sutek", owner = "the hazat", overview = "a suburban planet recently\ncolonized by house hazat",
+  ocean = {
+    p_c1= 12, p_c2= 13,
+    sprites = function(p_x,p_y,p_r)
+      return {}
+    end
   },
-  ['vera cruz'] = {
-    map_x = 72, map_y = 50, map_r = 3, map_c = 12, left="byzantium", down="sutek",
-    name = "vera cruz", owner = "the hazat", overview = "a wet, pine world notable\nfor its tech industry",
+  barren = {
+    p_c1= 15, p_c2= 4,
+    sprites = function(p_x,p_y,p_r)
+      return times(function()
+        local t = rnd()
+        local u = rnd() + rnd()
+        if u > 1 then u = 2 - u end
+        return {spr= 0, x= flr((p_r-2)*u*cos(t)+(p_x)), y= flr((p_r-2)*u*sin(t)+(p_y)), c= 0, r= 1}
+      end, 200)
+    end
   },
-  byzantium = {
-    map_x = 64, map_y = 64, map_r = 3, map_c = 12, up= "vera cruz", right= "vera cruz", down="aragon",
-    name = "byzantium secundus", owner = "neutral", overview = "the throne world of the \nimperium,it is the largest\n market in the galaxy",
+  airless = {
+    p_c1= 6, p_c2= 5,
+    sprites = function(p_x,p_y,p_r)
+      return {}
+    end
   },
-  aragon= {
-    map_x = 64, map_y = 80, map_r = 3, map_c = 12, up="byzantium", right="sutek", down="durruti",
-    name = "aragon", owner = "the hazat", overview = "the home of house hazat, and\nis a rich agricultural planet",
-  },
+  urban = {
+    p_c1= 6, p_c2= 5,
+    sprites = function(p_x,p_y,p_r)
+      return flatten(times(function()
+        local t = rnd()/2
+        local u = rnd() + rnd()
+        local two_story = rnd() > 0.7
+        if u > 1 then u = 2 - u end
+        if two_story then
+          return {
+            {spr= 16, x= flr((p_r+4)*u*cos(t)+(p_x)), y= flr((p_r+4)*u*sin(t)+(p_y))-8, c= 0, r= 1, offset = rndi(20), blink_light = rndi(4)+8},
+            {spr= 32, x= flr((p_r+4)*u*cos(t)+(p_x)), y= flr((p_r+4)*u*sin(t)+(p_y)), c= 0, r= 1, offset = rndi(20)},
+          }
+        else
+          return {spr= 32, x= flr((p_r-2)*u*cos(t)+(p_x)), y= flr((p_r-2)*u*sin(t)+(p_y)), c= 0, r= 1, offset = rndi(20)}
+        end
+      end,300))
+    end
+  }
 }
+planet_keys = {}
+planet_info = {}

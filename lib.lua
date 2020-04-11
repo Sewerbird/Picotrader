@@ -1,5 +1,25 @@
 -- LIBRARY
 
+function append(a,b)
+  for e in all(b) do
+    add(a,e)
+  end
+  return a
+end
+
+function flatten(array)
+  local result = {}
+  for e in all(array) do
+    local was_array = false
+    for z in all(e) do
+      was_array = true
+      add(result, z)
+    end
+    if not was_array then add(result, e) end
+  end
+  return result
+end
+
 function dist(x1,y1,x2,y2)
   return (x2-x1)^2+(y2-y1)^2
 end
@@ -17,23 +37,6 @@ function each(array, func)
   for v in all(array) do
     func(v)
   end
-end
-
-function map(a,func)
-  local result = {}
-  for v in all(a) do
-    add(result, func(v))
-  end
-  return result
-end
-
-function mapo(a,func)
-  local result = {}
-  for v in all(a) do
-    key, value = func(v)
-    result[v] = value
-  end
-  return result
 end
 
 function clamp(a,low,high)
@@ -54,15 +57,7 @@ function ease_in(input,start,finish)
   return start + (input*input)*range
 end
 
-function ease_in_out(input, start, max)
-  if input < 0.5 then
-    return ease_in(input*2, start, max)
-  else
-    return ease_in((input-0.5)*2, max, start)
-  end
-end
-
-function ease_in_out_linger(input, start,max,linger)
+function ease_in_out(input, start, max, linger)
   local ramp = (1-linger)/2
   if input < ramp then
     return ease_in(input/ramp, start, max)

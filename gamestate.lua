@@ -14,82 +14,65 @@ function init_business(tax_rate, inventory, base_production, base_consumption)
   return result
 end
 
+function make_planet(name,x,y,lanes,owner)
+  planet_info[name]={
+    name=name, map_x = x, map_y = y, map_r = 2,map_c=12,
+    up=lanes.up,left=lanes.left,down=lanes.down,right=lanes.right,
+    owner=owner,
+    type= planet_type_keys[rndi(#planet_type_keys)+1]
+  }
+end
+
 function create_game_state()
-  return {
+  make_planet("leminkainan",56,8,{left="ravenna",right="pentateuch"},"locals")
+  make_planet("bannock",32,16,{down="stigmata",right="ravenna"},"local")
+  make_planet("pentateuch",80,16,{left="leminkainan",down="delphi",right="terra"},"empire")
+  make_planet("artemis",112,16,{left="terra"},"locals")
+  make_planet("ravenna",48,24,{left="bannock",up="leminkainan",down="shaprut"},"locals")
+  make_planet("terra",96,24,{left="pentateuch",right="artemis",down="sutek"},"the church")
+  make_planet("stigmata",24,32,{up="bannock",right="istakhr",down="aylon"},"empire")
+  make_planet("shaprut",45,36,{up="ravenna",right="delphi",down="istakhr"},"local")
+  make_planet("delphi",64,32,{up="pentateuch",left="shaprut",right="tethys"},"hawkwood")
+  make_planet("sutek",102,40,{up="terra",left="tethys",down="vera cruz"},"empire")
+  make_planet("istakhr",40,48,{up="shaprut",left="stigmata",down="criticorum"},"al malik")
+  make_planet("tethys",80,48,{left="delphi",right="sutek",down="byzantium"},"local")
+  make_planet("aylon",16,56,{up="stigmata",right="criticorum",down="cadavus"},"empire")
+  make_planet("criticorum",40,64,{up="istakhr",left="aylon",right="byzantium",down="kish"},"local")
+  make_planet("byzantium",64,64,{left="criticorum",right="aragon",down="madoc"},"empire")
+  make_planet("vera cruz",112,64,{up="sutek",left="aragon"},"local")
+  make_planet("cadavus",24,72,{up="aylon",down="severus",right="malignatius"},"empire")
+  make_planet("aragon",88,72,{left="byzantium",right="vera cruz",down="leagueheim"},"hazat")
+  make_planet("de moley",8,80,{right="severus"},"empire")
+  make_planet("kish",48,80,{up="criticorum",left="malignatius",right="madoc",down="icon"},"li halan")
+  make_planet("madoc",64,80,{left="kish",up="byzantium",right="leagueheim"},"local")
+  make_planet("malignatius",32,88,{left="cadavus",right="kish",down="cadiz"},"empire")
+  make_planet("severus",16,96,{left="de moley",right="cadiz",up="cadavus"},"decados")
+  make_planet("leagueheim",80,96,{left="madoc",right="grail",up="aragon",down="rampart"},"the league")
+  make_planet("grail",112,96,{left="leagueheim"},"local")
+  make_planet("cadiz",32,104,{left="severus",right="icon",up="malignatius",down="vril ya"},"local")
+  make_planet("icon",48,104,{left="cadiz",right="midian",up="kish",down="manitou"},"empire")
+  make_planet("midian",64,104,{left="icon",right="rampart",down="apshai"},"local")
+  make_planet("vril ya",16,112,{right="vau",up="cadiz"},"vril ya")
+  make_planet("rampart",80,112,{left="midian",up="leagueheim",right="pandemonium",down="apshai"},"local")
+  make_planet("vau",24,120,{left="vril ya",right="manitou"},"vril_ya")
+  make_planet("manitou",40,120,{left="vau",right="apshai",up="icon"},"empire")
+  make_planet("apshai",56,120,{left="manitou",up="midian",right="rampart"},"local")
+  make_planet("pandemonium",112,120,{left="rampart"},"local")
+  for k,v in pairs(planet_info) do
+    add(planet_keys, k)
+  end
+
+  local result = {
     day_of_simulation = 0,
-    current_planet_scene = "warpspace",
-    destination_planet_scene = "durruti",
-    active_interface = "popup_dialog",
-    active_interfaces = {},
+    current_planet_scene = "delphi",
+    destination_planet_scene = "delphi",
+    active_interfaces = {"root_interface","popup_dialog"},
     player = {
       storage_remaining = 100,
       wallet_balance = 100,
       business = init_business(0,50,0,0),
       events = {},
       picture = {}
-    },
-    durruti = {
-      ticker = 0,
-      wallet_balance = 1000,
-      business = init_business(15, 50,0,0),
-      events = {},
-      picture = {
-        label = "durruti",
-        suns = {{x= 80, y= 14, r= 3, c= 10, c1= 7, c2= 15}},
-        planets = {
-          {x= 127, y= 90, r= 80, c = 15}, --sunlit horizon
-          {x= 130, y= 95, r= 80, c = 4} --shadowed planet
-        },
-        sprites = times(function()
-          local t = rnd()
-          local u = rnd() + rnd()
-          if u > 1 then u = 2 - u end
-          return {spr= 0, x= flr((80-2)*u*cos(t)+(127)), y= flr((80-2)*u*sin(t)+(90)), c= 0, r= 1}
-        end, 200)
-      }
-    },
-    aragon = {
-      ticker = 0,
-      wallet_balance = 1000,
-      business = init_business(10,50,0,0),
-      events = {},
-      picture = {
-        label = "aragon",
-        suns = {{x= 30, y= 30, r= 3, c= 10, c1= 8, c2= 9}},
-      }
-    },
-    sutek = {
-      ticker = 0,
-      wallet_balance = 1000,
-      business = init_business(25,50,0,0),
-      events = {},
-      picture = {
-        label = "sutek",
-        suns = {{x= 20, y= 76, r= 3, c= 7, c1= 8, c2= 12}},
-      }
-    },
-    ["vera cruz"] = {
-      ticker = 0,
-      wallet_balance = 1000,
-      business = init_business(10,50,0,0),
-      events = {},
-      picture = {
-        label = "vera cruz",
-      }
-    },
-    byzantium = {
-      ticker = 0,
-      wallet_balance = 1000,
-      business = init_business(20,50,0,0),
-      events = {},
-      picture = {
-        label = "byzantium",
-        suns = {{x= 64, y= 64, r= 6, c= 7, c1= 7, c2= 7}},
-        planets = {
-          {x= 64, y= 145, r= 80, c = 6}, --sunlit horizon
-          {x= 64, y= 160, r= 80, c = 5} --shadowed planet
-        },
-      }
     },
     warpspace = {
       ticker = 0,
@@ -106,20 +89,66 @@ function create_game_state()
         end, 200, {col= {7,7,6,5,1,2}})
       }
     },
-    trade_interface = purchase_interface("durruti"),
-    root_interface = root_interface("durruti"),
-    map_interface = map_interface("durruti"),
-    info_interface = info_interface("durruti"),
-    ship_interface = ship_interface("durruti"),
-    popup_dialog = popup_dialog("yesno","Inspection","you are being boarded by customs for inspection and tax collection.","root_interface"),
+    trade_interface = purchase_interface("delphi"),
+    root_interface = root_interface("delphi"),
+    map_interface = map_interface("delphi"),
+    info_interface = info_interface("delphi"),
+    ship_interface = ship_interface("delphi"),
+    popup_dialog = popup_dialog("ok","sPACE tRADER","tRAVEL THE GALAXY MAKING A PROFIT! rETIRE BY AMASSING $100000. gOOD lUCK!","root_interface",{}),
     news_ticker = {
       scroll_x = -127,
       news = "Welcome aboard, trader: the world is at your fingertips"
     }
   }
+  for k in all(planet_keys) do
+    if not result[k] then
+      local planet_type = planet_types[planet_info[k].type]
+      printh(k.." is "..planet_info[k].type)
+      local s_x = 64+(rndi(16)+16)
+      local s_y = rndi(32)+16
+      local s_r = rndi(3)+2
+      local p_r = 80
+      local dx = 64-s_x
+      local dy = 64-s_y
+      local p_x = 64 + dx + (dx > 0 and p_r/2 or -p_r/2)
+      local p_y = 64 + dy + (dy > 0 and p_r/2 or -p_r/2)
+      local p_c1 = planet_type.p_c1
+      local p_c2 = planet_type.p_c2
+      local ps_x = p_x>64 and p_x+3 or p_x-3
+      local ps_y = p_y>64 and p_y+3 or p_y-3
+      result[k] = {
+        ticker = 0,
+        wallet_balance = 1000,
+        business = init_business(20,50,0,0),
+        events = {},
+        picture = {
+          label = k,
+          star_port = {spridx=14, x=-(s_x-64)+64, y=s_y},
+          suns = {{x= s_x, y= s_y, r= s_r, c= 7, c1= 7, c2= 7}},
+          planets = {
+            {x= p_x, y= p_y, r= p_r, c = p_c1}, --sunlit horizon
+            {x= ps_x, y= ps_y, r= p_r-3, c = p_c2} --shadowed planet
+          },
+          blink_sprite = function(sprite)
+            if sprite.blink_light and mod(flr(game_state[game_state.current_planet_scene].ticker-sprite.offset), 40) < 20 then
+              pal(8,sprite.blink_light)
+            elseif sprite.blink_light then
+              pal(8,1)
+            end
+          end,
+          sprite_method = function() return planet_type.sprites(p_x,p_y,p_r) end
+        }
+      }
+    end
+  end
+  return result
 end
 
 function update_scene(scene)
+  --Pause scene if popup dialog occuring
+  if game_state.popup_dialog.active then
+    return
+  end
   game_state[scene].ticker += 1
   --Update the news ticker
   game_state.news_ticker.scroll_x += 1
@@ -128,6 +157,7 @@ function update_scene(scene)
   if scene == 'warpspace' then
     if game_state.warpspace.ticker > game_state.warpspace.travel_time then
       game_state.current_planet_scene = game_state.destination_planet_scene
+      game_state[game_state.current_planet_scene].picture.sprites = game_state[game_state.current_planet_scene].picture.sprite_method()
       game_state[game_state.current_planet_scene].ticker = 0
       game_state.warpspace.ticker = 0
     end
@@ -289,11 +319,16 @@ function reevaluate_price(planet, trade_good)
 end
 
 function push_interface(interface)
+  game_state[active_interface()].active = false
   add(game_state.active_interfaces, interface)
+  game_state[active_interface()].active = true
 end
 
 function pop_interface()
+  if #game_state.active_interfaces == 1 then return end --Don't pop off root interface
+  game_state[active_interface()].active = false
   del(game_state.active_interfaces, game_state.active_interfaces[#game_state.active_interfaces])
+  game_state[active_interface()].active = true
 end
 
 function active_interface()

@@ -1,27 +1,6 @@
 -- # USER INTERFACE & GRAPHICS
 
-function draw_interface(interface)
-  --Interfaces
-  if(game_state.active_interface == 'root_interface') then
-    game_state.root_interface:draw()
-    draw_balance()
-    draw_news_ticker()
-  end
-  if(game_state.active_interface == 'trade_interface') then
-    game_state.trade_interface:draw()
-    draw_balance()
-    draw_news_ticker()
-  end
-  if(game_state.active_interface == 'map_interface') then
-    game_state.map_interface:draw()
-    draw_news_ticker()
-  end
-  if(game_state.active_interface == 'info_interface') then
-    game_state.info_interface:draw()
-  end
-end
-
-function popup_dialog(type, title, text, parent_interface)
+function popup_dialog(type, title, text, parent_interface, callbacks)
   local title = title
   local l_x = 32
   local t_y = 32
@@ -35,7 +14,7 @@ function popup_dialog(type, title, text, parent_interface)
   local settings = {
   }
   local result = {
-    active = true,
+    active = false,
     type = type,
     title = title,
     text = text,
@@ -79,7 +58,8 @@ function popup_dialog(type, title, text, parent_interface)
       execute = function()
         printh("ACKNOWLEDGED")
         game_state.popup_dialog.active = false
-        game_state.active_interface = parent_interface
+        pop_interface()
+        if callbacks["ok"] then callbacks["ok"]() end
       end
     }
   }
@@ -90,7 +70,8 @@ function popup_dialog(type, title, text, parent_interface)
       execute = function()
         printh("YES")
         game_state.popup_dialog.active = false
-        game_state.active_interface = parent_interface
+        pop_interface()
+        if callbacks["yes"] then callbacks["yes"]() end
       end
     },
     ["no"] = {
@@ -99,7 +80,8 @@ function popup_dialog(type, title, text, parent_interface)
       execute = function()
         printh("NO")
         game_state.popup_dialog.active = false
-        game_state.active_interface = parent_interface
+        pop_interface()
+        if callbacks["no"] then callbacks["no"]() end
       end
     }
   }
@@ -138,15 +120,39 @@ function draw_planet_scene(scene)
   each(picture.sprites,function(v) 
     --Sprites are asssumed to be relative to the planet, so scroll in with it
     local l_x = lerp(clamp(ticker,0,60)/60,v.x+127,v.x)
+    pal()
+    if(picture.blink_sprite) then picture.blink_sprite(v) end
     spr(v.spr, l_x, v.y) 
+    pal()
   end)
+  --Star Port
+  if picture.star_port then
+    --Draws a 2x4 rect of sprites. 
+    --Input specifies the top-left sprite to begin with and its x,y
+    local x0= picture.star_port.x
+    local y = picture.star_port.y
+    local spridx = picture.star_port.spridx
+    local l_x = lerp(clamp(ticker,0,60)/60,127,0)
+    local x = x0 + l_x
+    spr(spridx,x,y)
+    spr(spridx+1,x+8,y)
+    spr(spridx+16,x,y+8)
+    spr(spridx+16+1,x+8,y+8)
+    spr(spridx+32,x,y+16)
+    spr(spridx+32+1,x+8,y+16)
+    spr(spridx+48,x,y+24)
+    spr(spridx+48+1,x+8,y+24)
+  end
   -- Name Label
   rectfill(1,1,40,8,0)
   print_centered_text_in_rect(picture.label, 0,0,40,8,13)
+  -- Draw the UI
+  --Interfaces
+  for interface in all(game_state.active_interfaces) do
+    game_state[interface]:draw()
+  end
   -- Interface border
   rect(0,0,127,127,1)
-  -- Draw the UI
-  draw_interface()
 end
 
 function draw_warp_scene()
@@ -154,7 +160,7 @@ function draw_warp_scene()
   local duration = game_state.warpspace.travel_time
   local c_x = game_state.warpspace.picture.c_x
   local c_y = game_state.warpspace.picture.c_y
-  local speed = ease_in_out_linger(game_state.warpspace.ticker/(duration), game_state.warpspace.speed, 1, 0.6)
+  local speed = ease_in_out(game_state.warpspace.ticker/(duration), game_state.warpspace.speed, 1, 0.6)
   for i=1,#game_state.warpspace.picture.stars do
     local star = game_state.warpspace.picture.stars[i]
     --check if off screen
@@ -188,39 +194,35 @@ end
 
 
 function purchase_interface(location)
-  local settings = {
-    l_x = 64 - 80/2, --left side of center column
-    c_x = 64, --center of center column
-    r_x = 64 + 80/2, --right side of center column
-    h_h = 10, --header height
-    r_h = 10, --row height
-    t_y = 24, --top of interface
-    w = 80 --width of center column
-  }
+  local l_x = 64 - 80/2 --left side of center column
+  local c_x = 64 --center of center column
+  local r_x = 64 + 80/2 --right side of center column
+  local h_h = 10 --header height
+  local r_h = 10 --row height
+  local t_y = 24 --top of interface
+  local w = 80 --width of center column
   local result = {
     active = false,
     entry_splat = "buy_sundries",
     current_splat = "buy_sundries",
     current_location = location,
-    settings = settings,
     draw = function(interface)
-      local t = interface.settings
       --# CENTER COLUMN
       --## Header
-      rectfill(0,t.t_y,128,t.t_y+t.h_h,1)
-      print_centered_text_in_rect("sell", t.l_x, t.t_y, t.l_x + t.w/3, t.t_y+t.h_h, 6)
-      print_centered_text_in_rect("buy", t.r_x - t.w/3, t.t_y, t.r_x, t.t_y+t.h_h, 6)
-      print_centered_text_on_point("trade", t.l_x + t.w/2, t.t_y+t.h_h, 6)
-      print_centered_text_in_rect("port", 0, t.t_y, t.l_x, t.t_y+t.h_h, 6)
-      print_centered_text_in_rect("ship", t.r_x, t.t_y, 127, t.t_y+t.h_h, 6)
+      rectfill(0,t_y,128,t_y+h_h,1)
+      print_centered_text_in_rect("sell", l_x, t_y, l_x + w/3, t_y+h_h, 6)
+      print_centered_text_in_rect("buy", r_x - w/3, t_y, r_x, t_y+h_h, 6)
+      print_centered_text_on_point("trade", l_x + w/2, t_y+h_h, 6)
+      print_centered_text_in_rect("port", 0, t_y, l_x, t_y+h_h, 6)
+      print_centered_text_in_rect("ship", r_x, t_y, 127, t_y+h_h, 6)
       --## Rows
       local i = 1
       for key in all(trade_good_keys) do
         local sprite_id = trade_goods[key].sprite_id
-        local left = t.l_x
-        local top = t.t_y+i*t.r_h-2
-        local w = t.w
-        local h = t.r_h
+        local left = l_x
+        local top = t_y+i*r_h-2
+        local w = w
+        local h = r_h
         local c_x = left+(w/2)
         local sell_price = game_state[interface.current_location].business[key].buy_price
         local buy_price = game_state[interface.current_location].business[key].sell_price
@@ -247,10 +249,9 @@ function purchase_interface(location)
   }
   local splats = {}
   local row = 1
-  interface = result.settings
   for good in all(trade_good_keys) do
     splats["buy_"..good] = {
-      x = interface.c_x + interface.w/6, y = interface.t_y - 2 + interface.h_h + (row-1)*interface.r_h, w = interface.w/3, h = interface.r_h,
+      x = c_x + w/6, y = t_y - 2 + h_h + (row-1)*r_h, w = w/3, h = r_h,
       up = (row > 1 and ("buy_"..trade_good_keys[row-1]) or nil),
       left = "sell_"..good, right = nil,
       down = (row < #trade_good_keys and ("buy_"..trade_good_keys[row+1]) or nil),
@@ -260,7 +261,7 @@ function purchase_interface(location)
       end
     }
     splats["sell_"..good] = {
-      x = interface.l_x, y = interface.t_y - 2 + interface.h_h + (row-1)*interface.r_h, w = interface.w/3, h = interface.r_h,
+      x = l_x, y = t_y - 2 + h_h + (row-1)*r_h, w = w/3, h = r_h,
       up = (row > 1 and ("sell_"..trade_good_keys[row-1]) or nil),
       left = nil, right = "buy_"..good,
       down = (row < #trade_good_keys and ("sell_"..trade_good_keys[row+1]) or nil),
@@ -276,26 +277,25 @@ function purchase_interface(location)
 end
 
 function root_interface(trader)
+  local   l_x = 0
+  local   t_y = 105 --top of interface
+  local   h = 10
+  local   tab_w = 22
+  local   w = 80 --width of center column
   local result = {
     active = false,
     entry_splat = "trade",
     current_splat = "trade",
     settings = {
-      l_x = 0,
-      t_y = 105, --top of interface
-      h = 10,
-      tab_w = 22,
-      w = 80 --width of center column
     },
     draw = function(interface)
-      local t = interface.settings
       local tab_keys = {"trade","map","info","ship","bar"}
       local i = 0
       for tab_key in all(tab_keys) do
-        local w= t.tab_w
-        local h= t.h 
-        local x= t.l_x+i*w+i
-        local y= t.t_y
+        local w= tab_w
+        local h= h 
+        local x= l_x+i*w+i
+        local y= t_y
         rectfill(x,y,x+w,y+h,1)
         line(x,y,x+w,y,5)
         line(x+w,y,x+w,y+h,5)
@@ -307,43 +307,44 @@ function root_interface(trader)
       if(cursor) then
         rect(cursor.x, cursor.y, cursor.x + cursor.w, cursor.y + cursor.h, 14)
       end
+      draw_balance()
+      draw_news_ticker()
     end
   }
-  local t = result.settings
   result.splats = {
     trade = {
-      x= t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      x= l_x, y= t_y, w=tab_w, h = h, 
       up= nil, down= nil, left= nil, right= 'map',
       execute= function()
-        game_state.active_interface = 'trade_interface'
+        push_interface('trade_interface')
       end
     },
     map = {
-      x= (t.tab_w+1)*1 + t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      x= (tab_w+1)*1 + l_x, y= t_y, w=tab_w, h = h, 
       up= nil, down= nil, left= 'trade', right= 'info',
       execute= function()
-        game_state.active_interface = 'map_interface'
+        push_interface('map_interface')
       end
     },
     info = {
-      x= (t.tab_w+1)*2+ t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      x= (tab_w+1)*2+ l_x, y= t_y, w=tab_w, h = h, 
       up= nil, down= nil, left= 'map', right= 'ship',
       execute= function()
-        game_state.active_interface = 'info_interface'
+        push_interface('info_interface')
       end
     },
     ship = {
-      x= (t.tab_w+1)*3+ t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      x= (tab_w+1)*3+ l_x, y= t_y, w=tab_w, h = h, 
       up= nil, down= nil, left= 'info', right= 'bar',
       execute= function()
-        game_state.active_interface = 'ship_interface'
+        push_interface('ship_interface')
       end
     },
     bar = {
-      x= (t.tab_w+1)*4+ t.l_x, y= t.t_y, w=t.tab_w, h = t.h, 
+      x= (tab_w+1)*4+ l_x, y= t_y, w=tab_w, h = h, 
       up= nil, down= nil, left= 'ship', right= nil,
       execute= function()
-        game_state.active_interface = 'ship_interface'
+        push_interface('ship_interface')
       end
     },
   }
@@ -351,22 +352,19 @@ function root_interface(trader)
 end
 
 function info_interface(location)
+  local l_x = 64 - 80/2 --left side of center column
+  local c_x = 64 --center of center column
+  local r_x = 64 + 80/2 --right side of center column
+  local h_h = 10 --header height
+  local r_h = 10 --row height
+  local t_y = 32 --top of interface
+  local w = 80 --width of center column
   local result = {
     active = false,
     entry_splat = location,
     current_splat = nil,
     current_location = location,
-    settings = {
-      l_x = 64 - 80/2, --left side of center column
-      c_x = 64, --center of center column
-      r_x = 64 + 80/2, --right side of center column
-      h_h = 10, --header height
-      r_h = 10, --row height
-      t_y = 32, --top of interface
-      w = 80 --width of center column
-    },
     draw = function(interface)
-      local t = interface.settings
       --## Header
       rectfill(0,0,127,127,5)
       local planet = planet_info[interface.current_location]
@@ -448,10 +446,7 @@ function info_interface(location)
       end
     end
   }
-  local splats = {
-    [location] = {}
-  }
-  result.splats = splats
+  result.splats = { [location] = {}}
   return result
 end
 
@@ -563,21 +558,24 @@ function map_interface(trader)
         printh("Here is "..game_state.current_planet_scene)
         printh("There is "..key)
         local warp_distance = dist(planet_info[key].map_x, planet_info[key].map_y, here.map_x, here.map_y)
-        game_state.popup_dialog = popup_dialog("yesno","Travel?","Travel to "..key.." will take "..flr(warp_distance), "map_interface")
-        game_state.active_interface = "popup_dialog"
-        if false then
-          printh("Warp distance is "..warp_distance)
-          game_state.warpspace.travel_time = warp_distance
-          advance_simulation()
-          game_state.current_planet_scene="warpspace"
-          game_state.destination_planet_scene= key
-          game_state.trade_interface = purchase_interface(key)
-          game_state.root_interface = root_interface(key)
-          game_state.map_interface = map_interface(key)
-          game_state.info_interface = info_interface(key)
-          game_state.active_interface = "root_interface"
-          game_state[game_state.active_interface].current_splat = "map"
-        end
+        game_state.popup_dialog = popup_dialog("yesno","Travel?","Travel to "..key.." will take "..flr(warp_distance), "map_interface",
+        {
+          ["yes"]= function()
+            printh("Warp distance is "..warp_distance)
+            game_state.warpspace.travel_time = warp_distance/10
+            advance_simulation()
+            game_state[game_state.current_planet_scene].picture.sprites = nil
+            game_state.current_planet_scene="warpspace"
+            game_state.destination_planet_scene= key
+            game_state.trade_interface = purchase_interface(key)
+            game_state.root_interface = root_interface(key)
+            game_state.map_interface = map_interface(key)
+            game_state.info_interface = info_interface(key)
+            pop_interface() -- Pop out of map view
+            game_state[active_interface()].current_splat = "map" -- ...but leave it selected in the root view
+          end
+        })
+        push_interface("popup_dialog")
       end
     }
   end
