@@ -21,6 +21,96 @@ function draw_interface(interface)
   end
 end
 
+function popup_dialog(type, title, text, parent_interface)
+  local title = title
+  local l_x = 32
+  local t_y = 32
+  local w = 64
+  local c_x = l_x+w/2
+  local h = 64
+  local b_o = 3
+  local b_h = 8
+  local b_w = 25
+  local title_w = #title * 4
+  local settings = {
+  }
+  local result = {
+    active = true,
+    type = type,
+    title = title,
+    text = text,
+    entry_splat = type == "yesno" and "yes" or "ok",
+    current_splat = type == "yesno" and "yes" or "ok",
+    settings = settings,
+    draw = function(dialog)
+      --Background
+      rectfill(l_x,t_y,l_x+w,t_y+h,1)
+      --Title
+      print(title, l_x+w-title_w-1, t_y+2,12)
+      --Textarea
+      print_text_in_rect(text, l_x+2,t_y+10,l_x+w,t_y+6+h,7)
+      --Border
+      rect(l_x,t_y,l_x+w,t_y+h,2)
+      --Buttons
+      if dialog.type == "yesno" then
+        -- # Either/Or Dialog
+        rectfill(c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,13)
+        rect(c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,9)
+        print_centered_text_in_rect("Yes",c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,7)
+        rectfill(c_x+b_o, t_y+h-b_h,c_x+b_w+b_o,t_y+h,13)
+        rect(c_x+b_o, t_y+h-b_h,c_x+b_w+b_o,t_y+h,9)
+        print_centered_text_in_rect("No",c_x+b_o,t_y+h-b_h,c_x+b_w+b_o,t_y+h,7)
+      else
+        -- # Acknowledgement Dialog
+        rectfill(c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,13)
+        rect(c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,9)
+        print_centered_text_in_rect("Okay",c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,9)
+      end
+      --## Active Splat
+      local cursor = dialog.splats[dialog.current_splat]
+      if(cursor) then
+        rect(cursor.x, cursor.y, cursor.x + cursor.w, cursor.y + cursor.h, 14)
+      end
+    end
+  }
+  result.splats_ok = {
+    ["ok"] = {
+      x = c_x-b_w/2, y= t_y+h-b_h, w = b_w, h= b_h,
+      execute = function()
+        printh("ACKNOWLEDGED")
+        game_state.popup_dialog.active = false
+        game_state.active_interface = parent_interface
+      end
+    }
+  }
+  result.splats_yesno = {
+    ["yes"] = {
+      x = c_x-b_w-b_o, y= t_y+h-b_h, w = b_w, h= b_h,
+      right = "no",
+      execute = function()
+        printh("YES")
+        game_state.popup_dialog.active = false
+        game_state.active_interface = parent_interface
+      end
+    },
+    ["no"] = {
+      x = c_x+b_o, y= t_y+h-b_h, w = b_w, h= b_h,
+      left = "yes",
+      execute = function()
+        printh("NO")
+        game_state.popup_dialog.active = false
+        game_state.active_interface = parent_interface
+      end
+    }
+  }
+  if type == "yesno" then
+    result.splats = result.splats_yesno
+  else
+    result.splats = result.splats_ok
+  end
+  return result
+end
+
 function draw_planet_scene(scene)
   --Note: Enforces 'arrival' animation
   local picture = game_state[scene].picture
@@ -64,9 +154,7 @@ function draw_warp_scene()
   local duration = game_state.warpspace.travel_time
   local c_x = game_state.warpspace.picture.c_x
   local c_y = game_state.warpspace.picture.c_y
-  game_state.warpspace.picture.c_x = clamp(c_x + rnd(8)-4,32,96)
-  game_state.warpspace.picture.c_y = clamp(c_y + rnd(8)-4,32,96)
-  local speed = ease_in_out(game_state.warpspace.ticker/(duration), game_state.warpspace.speed, 0)
+  local speed = ease_in_out_linger(game_state.warpspace.ticker/(duration), game_state.warpspace.speed, 1, 0.6)
   for i=1,#game_state.warpspace.picture.stars do
     local star = game_state.warpspace.picture.stars[i]
     --check if off screen
@@ -82,6 +170,8 @@ function draw_warp_scene()
       line(star.x,star.y,star.x-dx,star.y-dy,star.c)
     end
   end
+  print(""..game_state.destination_planet_scene.."\nETA: "..(flr((game_state.warpspace.travel_time-game_state.warpspace.ticker)/3)/10),c_x-16,c_y+4,8)
+  spr(0,c_x-4,c_y-4)
 end
 
 function draw_balance()
@@ -469,15 +559,25 @@ function map_interface(trader)
         --TODO Show extra info about the planet before assuming we're travelling to it
         --TODO Add travel events between planets
         --Do next turn, and arrive at destination
-        advance_simulation()
-        game_state.current_planet_scene="warpspace"
-        game_state.destination_planet_scene= key
-        game_state.trade_interface = purchase_interface(key)
-        game_state.root_interface = root_interface(key)
-        game_state.map_interface = map_interface(key)
-        game_state.info_interface = info_interface(key)
-        game_state.active_interface = "root_interface"
-        game_state[game_state.active_interface].current_splat = "map"
+        local here = planet_info[game_state.current_planet_scene]
+        printh("Here is "..game_state.current_planet_scene)
+        printh("There is "..key)
+        local warp_distance = dist(planet_info[key].map_x, planet_info[key].map_y, here.map_x, here.map_y)
+        game_state.popup_dialog = popup_dialog("yesno","Travel?","Travel to "..key.." will take "..flr(warp_distance), "map_interface")
+        game_state.active_interface = "popup_dialog"
+        if false then
+          printh("Warp distance is "..warp_distance)
+          game_state.warpspace.travel_time = warp_distance
+          advance_simulation()
+          game_state.current_planet_scene="warpspace"
+          game_state.destination_planet_scene= key
+          game_state.trade_interface = purchase_interface(key)
+          game_state.root_interface = root_interface(key)
+          game_state.map_interface = map_interface(key)
+          game_state.info_interface = info_interface(key)
+          game_state.active_interface = "root_interface"
+          game_state[game_state.active_interface].current_splat = "map"
+        end
       end
     }
   end

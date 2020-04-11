@@ -26,6 +26,7 @@ function _draw()
   end
   --Border
 	rect(0,0,127,127,1)
+  if game_state.popup_dialog.active then game_state.popup_dialog:draw() end
 end
 
 function _update()

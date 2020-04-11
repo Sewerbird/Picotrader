@@ -19,7 +19,8 @@ function create_game_state()
     day_of_simulation = 0,
     current_planet_scene = "warpspace",
     destination_planet_scene = "durruti",
-    active_interface = "root_interface",
+    active_interface = "popup_dialog",
+    active_interfaces = {},
     player = {
       storage_remaining = 100,
       wallet_balance = 100,
@@ -92,7 +93,7 @@ function create_game_state()
     },
     warpspace = {
       ticker = 0,
-      travel_time = 120, --ticks
+      travel_time = 300, --ticks
       speed = 40,
       picture = {
         c_x= 64, c_y= 64,
@@ -110,6 +111,7 @@ function create_game_state()
     map_interface = map_interface("durruti"),
     info_interface = info_interface("durruti"),
     ship_interface = ship_interface("durruti"),
+    popup_dialog = popup_dialog("yesno","Inspection","you are being boarded by customs for inspection and tax collection.","root_interface"),
     news_ticker = {
       scroll_x = -127,
       news = "Welcome aboard, trader: the world is at your fingertips"
@@ -286,3 +288,14 @@ function reevaluate_price(planet, trade_good)
   game_state[planet].business[trade_good].sell_price = today_sell
 end
 
+function push_interface(interface)
+  add(game_state.active_interfaces, interface)
+end
+
+function pop_interface()
+  del(game_state.active_interfaces, game_state.active_interfaces[#game_state.active_interfaces])
+end
+
+function active_interface()
+  return game_state.active_interfaces[#game_state.active_interfaces]
+end
