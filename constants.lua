@@ -1,6 +1,8 @@
 -- GLOBALS & CONSTANTS
 
 game_state = nil
+win_amount = 300
+lose_amount = 0
 directions = {'left','right','up','down'}
 trade_good_keys = {"medicine","fuel","food","steel","weapons","robotics","tools","artwork"}
 trade_goods = {

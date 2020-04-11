@@ -84,19 +84,19 @@ function create_game_state()
 
   local result = {
     day_of_simulation = 0,
-    current_planet_scene = "delphi",
+    current_planet_scene = "warpspace",
     destination_planet_scene = "delphi",
     active_interfaces = {"root_interface","popup_dialog"},
     player = {
       storage_remaining = 100,
       wallet_balance = 100,
-      business = init_business(0,50,0,0),
+      business = init_business(0,0,0,0),
       events = {},
       picture = {}
     },
     warpspace = {
       ticker = 0,
-      travel_time = 300, --ticks
+      travel_time = 30, --ticks
       speed = 40,
       picture = {
         c_x= 64, c_y= 64,
@@ -180,6 +180,26 @@ function update_scene(scene)
       game_state[game_state.current_planet_scene].picture.sprites = game_state[game_state.current_planet_scene].picture.sprite_method()
       game_state[game_state.current_planet_scene].ticker = 0
       game_state.warpspace.ticker = 0
+    end
+  else
+    if game_state.player.wallet_balance > win_amount then
+      game_over = true
+      game_state.popup_dialog = popup_dialog("ok","yOU wIN!!!","aFTER A LOT OF HARD WORK, YOU CAN RETIRE! \nCONGRATULATIONS STAR TRADER...","root_interface",
+      {
+        ["ok"] = function()
+          extcmd('reset')
+        end
+      }, true)
+      push_interface("popup_dialog")
+    elseif game_state.player.wallet_balance <= lose_amount and total_goods() == 0 then
+      game_over = true
+      game_state.popup_dialog = popup_dialog("ok","bankrupt","fINDING YOURSELF PAUPERED, YOU ARE STRANDED ON THIS PLANET. \nGAMEOVER","root_interface",
+      {
+        ["ok"] = function()
+          extcmd('reset')
+        end
+      }, true)
+      push_interface("popup_dialog")
     end
   end
 end
@@ -354,4 +374,13 @@ end
 
 function active_interface()
   return game_state.active_interfaces[#game_state.active_interfaces]
+end
+
+function total_goods()
+  local total = 0
+  for good in all(trade_good_keys) do
+    total += game_state.player.business[good].inventory
+  end
+  printh("Total goods is "..total)
+  return total
 end

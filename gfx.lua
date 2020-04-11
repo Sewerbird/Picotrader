@@ -570,9 +570,11 @@ function map_interface(trader)
         printh("Here is "..game_state.current_planet_scene)
         printh("There is "..key)
         local warp_distance = dist(planet_info[key].map_x, planet_info[key].map_y, here.map_x, here.map_y)
-        game_state.popup_dialog = popup_dialog("yesno","Travel?","Travel to "..key.." will take "..flr(warp_distance), "map_interface",
+        local cost = flr(warp_distance/100)
+        game_state.popup_dialog = popup_dialog("yesno","Travel?","tRAVELLING TO "..key.." WILL COST $"..flr(cost), "map_interface",
         {
           ["yes"]= function()
+            game_state.player.wallet_balance -= cost
             printh("Warp distance is "..warp_distance)
             game_state.warpspace.travel_time = warp_distance/10
             advance_simulation()
