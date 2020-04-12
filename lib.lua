@@ -1,5 +1,3 @@
--- LIBRARY
-
 function append(a,b)
   for e in all(b) do
     add(a,e)
@@ -21,7 +19,7 @@ function flatten(array)
 end
 
 function dist(x1,y1,x2,y2)
-  return (x2-x1)^2+(y2-y1)^2
+  return sqrt((x2-x1)^2+(y2-y1)^2)
 end
 
 function times(func,cnt,with)
@@ -86,7 +84,6 @@ function print_centered_text_in_rect(text, x1, y1, x2, y2, col)
   local w = #text * 4
   local c_x = (x2-x1)/2 + x1
   local c_y = (y2-y1)/2 + y1 - 2
-  --rect(x1,y1,x2,y2,7) --Debug rect
   print(text, c_x - w/2, c_y, col)
 end
 
@@ -109,10 +106,10 @@ function wrap_string(string, w)
   local curr_width = 0
   for token in all(tokens) do
     local token_width = #token * 4
-    if token_width > w then
+    if token_width >= w then
       result = result .. "\n" .. token
       curr_width = token_width
-    elseif curr_width + token_width > w then
+    elseif curr_width + token_width >= w then
       result = result .. "\n" .. token
       curr_width = token_width
     else
@@ -124,7 +121,7 @@ function wrap_string(string, w)
 end
 
 function print_text_in_rect(text, x1, y1, x2, y2, col)
-  local max_w = x2-x1
+  local max_w = x2-x1 - 2
   local max_c = flr(max_w/4)
   local lines = ceil(#text/max_c)
   print(wrap_string(text, max_w),x1,y1,col)

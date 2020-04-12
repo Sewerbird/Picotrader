@@ -1,19 +1,32 @@
 -- GLOBALS & CONSTANTS
 
-game_state = nil
-win_amount = 300
+g = nil
+win_amount = 1000 --k$
 lose_amount = 0
 directions = {'left','right','up','down'}
 trade_good_keys = {"medicine","fuel","food","steel","weapons","robotics","tools","artwork"}
 trade_goods = {
-  medicine = {sprite_id = 1},
-  fuel = {sprite_id = 6},
-  food = {sprite_id = 3},
-  steel = {sprite_id = 5},
-  weapons = {sprite_id = 9},
-  robotics = {sprite_id = 7},
-  tools = {sprite_id = 8},
-  artwork = {sprite_id = 2},
+  medicine = {sprite_id = 10, base_price = 10, bulk = 1},
+  fuel = {sprite_id = 6, base_price = 5, bulk = 3},
+  food = {sprite_id = 3, base_price = 4, bulk = 3},
+  steel = {sprite_id = 5, base_price = 6, bulk = 2},
+  weapons = {sprite_id = 9, base_price = 10, bulk = 2},
+  robotics = {sprite_id = 7, base_price = 8, bulk = 2},
+  tools = {sprite_id = 8, base_price = 10, bulk = 2},
+  artwork = {sprite_id = 2, base_price = 20, bulk = 2},
+}
+neg_ln = {
+[1]= 0,
+[2]=-0.6931471806,
+[3]=-1.0986122887,
+[4]=-1.3862943611,
+[5]=-1.6094379124,
+[6]=-1.7917594692,
+[7]=-1.9459101491,
+[8]=-2.0794415417,
+[9]=-2.1972245773,
+[10]=-2.302585093,
+[20]=-2.9957322736
 }
 trade_good_mods = {
   medicine= { urban=5, locals=-5, ["decados"]=5},
@@ -64,14 +77,14 @@ planet_types = {
     end
   },
   icy = {
-    p_c1= 6, p_c2= 5,
+    p_c1= 7, p_c2= 6,
     sprites = function(p_x,p_y,p_r)
       local scatter = {17,33,21,22}
       return scatter_over_planet(300,scatter,p_x,p_y,p_r)
     end
   },
   airless = {
-    p_c1= 6, p_c2= 5,
+    p_c1= 7, p_c2= 15,
     sprites = function(p_x,p_y,p_r)
       local scatter = {0}
       return scatter_over_planet(300,scatter,p_x,p_y,p_r)
@@ -96,6 +109,26 @@ planet_types = {
       end,300))
     end
   }
+}
+possible_events = {
+  {
+    change= function(planet,good) planet.business[good].inventory = 127 end,
+    text= function(planet,good) return "gLUT OF "..good.." ON "..planet end},
+  {
+    change= function(planet,good) planet.business[good].inventory = 0 end,
+    text= function(planet,good) return "sHORTAGE OF "..good.." ON "..planet end},
+  {
+    change= function(planet,good) planet.business.tax_rate += 25 end,
+    unchange= function(planet,good) planet.business.tax_rate -= 25 end, 
+    text= function(planet,good) return "iMPERIAL EMBARGO OVER "..planet end},
+  {
+    change= function(planet,good) planet.business[good].base_production += 5 end,
+    unchange= function(planet,good) planet.business[good].base_production -= 5 end, 
+    text= function(planet,good) return "nEW JOBS FOR MAKING "..good.." ON "..planet end},
+  {
+    change= function(planet,good) planet.business[good].base_production -= 5 end,
+    unchange= function(planet,good) planet.business[good].base_production += 5 end, 
+    text= function(planet,good) return "lAYOFFS AT PRODUCERS OF "..good.." ON "..planet end},
 }
 planet_keys = {}
 planet_info = {}
