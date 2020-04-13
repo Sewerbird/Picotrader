@@ -41,19 +41,21 @@ function draw_planet_scene(scene)
     local l_x = lerp(clamp(ticker,0,60)/60,127,0)
     local x = picture.star_port.x + l_x
     for i=0,3 do
+      pal()
+      if(picture.blink_sprite) then picture.blink_sprite(picture.star_port) end
       spr(spridx+16*i,x,y+i*8)
       spr(spridx+16*i+1,x+8,y+i*8)
+      pal()
     end
   end
-  -- Name Label
-  rectfill(1,1,40,8,0)
-  print_centered_text_in_rect(picture.label, 0,0,40,8,13)
-  -- Draw the UI
+  --Name Label
+  rectfill(2,2,60,8,0)
+  print_text_in_rect(picture.label,2,2,60,8,13)
   --Interfaces
   for interface in all(g.active_interfaces) do
     g[interface]:draw()
   end
-  -- Interface border
+  --Interface border
   rect(0,0,127,127,1)
 end
 
@@ -310,7 +312,8 @@ function purchase_interface(location)
       left = "sell_"..good, right = nil,
       down = (row < #trade_good_keys and ("buy_"..trade_good_keys[row+1]) or nil),
       execute = function()
-        local success, error = buy_from_trader(location,"player",good,1)
+        local amount = btn(1) and 5 or 1
+        local success, error = buy_from_trader(location,"player",good,amount)
         if(not success) then printh("Error selling: '"..error.."'") end
       end
     }
@@ -320,7 +323,8 @@ function purchase_interface(location)
       left = nil, right = "buy_"..good,
       down = (row < #trade_good_keys and ("sell_"..trade_good_keys[row+1]) or nil),
       execute = function()
-        local success, error = buy_from_trader("player",location,good,1)
+        local amount = btn(0) and 5 or 1
+        local success, error = buy_from_trader("player",location,good,amount)
         if(not success) then printh("Error selling: '"..error.."'") end
       end
     }

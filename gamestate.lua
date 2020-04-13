@@ -112,7 +112,7 @@ function create_game_state()
     map_interface = map_interface("delphi"),
     info_interface = info_interface("delphi"),
     ship_interface = ship_interface("delphi"),
-    popup_dialog = popup_dialog("ok","sPACE tRADER","tRAVEL THE GALAXY MAKING A PROFIT! rETIRE BY AMASSING $100000. gOOD lUCK!","root_interface",{}),
+    popup_dialog = popup_dialog("ok","fADING sUNS tRADER","nEW lEAGUER, tRAVEL THE GALAXY MAKING A PROFIT! rETIRE BY AMASSING $100000. gOOD lUCK!","root_interface",{}),
     news_ticker = {
       scroll_x = -127,
       news = "Welcome aboard, trader: the world is at your fingertips"
@@ -133,6 +133,7 @@ function create_game_state()
       local p_c2 = planet_type.p_c2
       local ps_x = p_x>64 and p_x+3 or p_x-3
       local ps_y = p_y>64 and p_y+3 or p_y-3
+      local possible_blinks = {7,8,9,10}
       result[k] = {
         ticker = 0,
         wallet_balance = 1000,
@@ -140,7 +141,7 @@ function create_game_state()
         events = {},
         picture = {
           label = k,
-          star_port = {spridx=14, x=-(s_x-64)+64, y=s_y},
+          star_port = {spridx=14, x=-(s_x-64)+64, y=s_y, blink_light=(possible_blinks[rndi(3)+1]), offset=0},
           suns = {{x= s_x, y= s_y, r= s_r, c= 7, c1= 7, c2= 7}},
           planets = {
             {x= p_x, y= p_y, r= p_r, c = p_c1},
@@ -165,16 +166,27 @@ function update_scene(scene)
   if g.popup_dialog.active then
     return
   end
+  music_ticker += 1
+  if music_ticker > 4000 then
+    music(0)
+    music_ticker = 0
+  elseif mod(music_ticker,300)==0 then
+    printh("playing incidenta")
+    sfx(beepboops[rndi(#beepboops)+1])
+  end
   g[scene].ticker += 1
   g.news_ticker.scroll_x += 1
   if(g.news_ticker.scroll_x > 4 * #g.news_ticker.news) then g.news_ticker.scroll_x = -127 end
   if scene == 'warpspace' then
     if g.warpspace.ticker > g.warpspace.travel_time then
+      sfx(-1,3)
       sfx(34)
       g.current_planet_scene = g.destination_planet_scene
       g[g.current_planet_scene].picture.sprites = g[g.current_planet_scene].picture.sprite_method()
       g[g.current_planet_scene].ticker = 0
       g.warpspace.ticker = 0
+    elseif g.warpspace.ticker == 4 then
+      sfx(32,3)
     end
   else
     if g[g.current_planet_scene].picture.sprites == nil then 
@@ -211,15 +223,19 @@ function buy_from_trader(trader, buyer, good, amount)
   end
   local price = unit_price * amount
   if(g[trader].business[good].inventory < amount) then
+    sfx(37)
     return false, "Not enough stock"
   end
-  if(g[buyer].storage_remaining != nil and g[buyer].storage_remaining < amount) then
+  if(g[buyer].storage_remaining != nil and g[buyer].storage_remaining < amount*trade_goods[good].bulk) then
+    sfx(37)
     return false, "Not enough space"
   end
   if(g[buyer].wallet_balance < price/1000) then --k$
+    sfx(37)
     return false, "Not enough money"
   end
   if buyer == 'player' then
+    sfx(36)
     g[buyer].storage_remaining -= amount * trade_goods[good].bulk
     g[buyer].storage_used += amount * trade_goods[good].bulk
     g[buyer].business[good].avg_price = 
@@ -227,6 +243,7 @@ function buy_from_trader(trader, buyer, good, amount)
       / (g[buyer].business[good].inventory + amount)
   end
   if trader == 'player' then
+    sfx(35)
     g[trader].storage_remaining += amount * trade_goods[good].bulk
     g[trader].storage_used -= amount * trade_goods[good].bulk
   end
@@ -269,8 +286,7 @@ end
 function travel(here, there)
   local cost = travel_cost(here, there)
   if cost/1000 < g.player.wallet_balance then --k$
-    sfx(33)
-    sfx(32,-1,0,30*(travel_time(here,there)/4))
+    sfx(40)
     g.player.wallet_balance -= cost/1000
     g.warpspace.travel_time = travel_time(here, there) * 30
     advance_simulation(flr(travel_time(here,there)))
@@ -370,7 +386,6 @@ function reevaluate_price(planet, trade_good)
   local desired_stock = g[planet].business[trade_good].desired_stock --quantity desired
   local base_price = g[planet].business[trade_good].base_price --price when satisifed
   local f0 = 4 --base_price multiplier when none in stock. TODO Make this planet specific.... need a 'ln' function.
-  --printh("Calculating bpm of "..trade_good.." on '"..planet.."' = "..base_price.."*e^(("..in_stock.."/"..desired_stock..")*ln(1/"..f0.."))")
   local base_price_multiplier = f0*2.71828^((in_stock/desired_stock)*neg_ln[f0])
   local today_buy = base_price * base_price_multiplier
   local today_sell = base_price * base_price_multiplier * (1+tax_rate/100)
@@ -400,6 +415,5 @@ function total_goods()
   for good in all(trade_good_keys) do
     total += g.player.business[good].inventory
   end
-  printh("Total goods is "..total)
   return total
 end

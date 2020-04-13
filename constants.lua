@@ -1,6 +1,8 @@
 -- GLOBALS & CONSTANTS
 
 g = nil
+beepboops = {41,42,43,44,45,46}
+music_ticker = 3900
 win_amount = 1000 --k$
 lose_amount = 0
 directions = {'left','right','up','down'}
