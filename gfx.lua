@@ -199,14 +199,14 @@ function popup_dialog(type, title, text, parent_interface, callbacks)
       if dialog.type == "yesno" then
         rectfill(c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,13)
         rect(c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,5)
-        print_centered_text_in_rect("Yes",c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,7)
+        print_centered_text_in_rect("yES",c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,7)
         rectfill(c_x+b_o, t_y+h-b_h,c_x+b_w+b_o,t_y+h,13)
         rect(c_x+b_o, t_y+h-b_h,c_x+b_w+b_o,t_y+h,5)
-        print_centered_text_in_rect("No",c_x+b_o,t_y+h-b_h,c_x+b_w+b_o,t_y+h,7)
+        print_centered_text_in_rect("nO",c_x+b_o,t_y+h-b_h,c_x+b_w+b_o,t_y+h,7)
       else
         rectfill(c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,13)
         rect(c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,5)
-        print_centered_text_in_rect("Okay",c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,7)
+        print_centered_text_in_rect("oKAY",c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,7)
       end
       local cursor = dialog.splats[dialog.current_splat]
       if(cursor) then
@@ -513,7 +513,7 @@ function map_interface(trader)
       execute=function()
         local here = g.map_interface.current_location
         --TODO Add travel events between planets
-        g.popup_dialog = popup_dialog("yesno","Travel?","tRAVELLING TO "..key.." WILL COST $"..flr(travel_cost(here,key)).." AND TAKE "..flr(travel_time(here,key)).."DAYS", "map_interface",
+        g.popup_dialog = popup_dialog("yesno","Travel?","tRAVELLING TO "..key.." WILL COST $"..flr(travel_cost(here,key)).." AND TAKE "..flr(travel_time(here,key)).." DAYS", "map_interface",
         {
           ["yes"]= function()
             if can_travel(here,key) then

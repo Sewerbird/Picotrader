@@ -130,7 +130,7 @@ possible_events = {
   {
     change= function(planet,good) planet.business[good].base_production -= 5 end,
     unchange= function(planet,good) planet.business[good].base_production += 5 end, 
-    text= function(planet,good) return "lAYOFFS AT PRODUCERS OF "..good.." ON "..planet end},
+    text= function(planet,good) return "lAYOFFS FOR PRODUCERS OF "..good.." ON "..planet end},
 }
 planet_keys = {}
 planet_info = {}

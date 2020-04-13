@@ -171,7 +171,6 @@ function update_scene(scene)
     music(0)
     music_ticker = 0
   elseif mod(music_ticker,300)==0 then
-    printh("playing incidenta")
     sfx(beepboops[rndi(#beepboops)+1])
   end
   g[scene].ticker += 1
@@ -344,12 +343,13 @@ function generate_news(planet)
     "don't sue us if ur late",
     "best rag this side terra"
   }
-  local news = "lEAGUE iNSIDER-\""..slogans[rndi(#slogans)+1].."\": (dAY "..g.day_of_simulation..") "
+  local news = "".."(dAY "..g.day_of_simulation..")"
   for planet in all(planet_keys) do
     for event in all(g[planet].events) do
-      news = news..event.text..". "
+      news = news.." "..event.text.."."
     end
   end
+  news = news..".. lEAGUE iNSIDER-\""..slogans[rndi(#slogans)+1]
   g.news_ticker.scroll_x = -127
   g.news_ticker.news = news
 end
