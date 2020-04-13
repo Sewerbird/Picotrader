@@ -49,13 +49,16 @@ function draw_planet_scene(scene)
     end
   end
   --Name Label
-  rectfill(2,2,60,8,0)
-  print_text_in_rect(picture.label,2,2,60,8,13)
-  --Interfaces
-  for interface in all(g.active_interfaces) do
-    g[interface]:draw()
-  end
-  --Interface border
+  --if(btn(0) and btn(2)) then
+  --else
+    rectfill(2,2,60,8,0)
+    print_text_in_rect(picture.label,2,2,60,8,13)
+    --Interfaces
+    for interface in all(g.active_interfaces) do
+      g[interface]:draw()
+    end
+    --Interface border
+  --end
   rect(0,0,127,127,1)
 end
 
