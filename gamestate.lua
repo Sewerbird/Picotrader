@@ -184,6 +184,7 @@ function update_scene(scene)
       g[g.current_planet_scene].picture.sprites = g[g.current_planet_scene].picture.sprite_method()
       g[g.current_planet_scene].ticker = 0
       g.warpspace.ticker = 0
+      inspect(g[g.current_planet_scene].events)
     elseif g.warpspace.ticker == 4 then
       sfx(32,3)
     end
@@ -303,10 +304,11 @@ function generate_events()
   local new_event = possible_events[rndi(#possible_events)+1]
   local new_planet = planet_keys[rndi(#planet_keys)+1]
   local new_good = trade_good_keys[rndi(#trade_good_keys)+1]
-  local new_duration = rndi(8)
+  local new_duration = new_event.duration or rndi(20)
   add(g[new_planet].events, {
     applied = false,
     change= new_event.change,
+    unchange= new_event.unchange,
     duration= new_duration,
     planet = new_planet,
     good = new_good,
@@ -326,7 +328,7 @@ function apply_events(planet)
         g[planet].business.tax_rate -= event.change_tax
       end
       if event.unchange then
-        event.unchange(g[planet])
+        event.unchange(g[planet],event.good)
       end
       del(g[planet].events,event)
     end
@@ -349,7 +351,7 @@ function generate_news(planet)
       news = news.." "..event.text.."."
     end
   end
-  news = news..".. lEAGUE iNSIDER-\""..slogans[rndi(#slogans)+1]
+  news = news..".. lEAGUE iNSIDER-\""..slogans[rndi(#slogans)+1].."\""
   g.news_ticker.scroll_x = -127
   g.news_ticker.news = news
 end
@@ -387,7 +389,7 @@ function reevaluate_price(planet, trade_good)
   local base_price = g[planet].business[trade_good].base_price --price when satisifed
   local f0 = 4 --base_price multiplier when none in stock. TODO Make this planet specific.... need a 'ln' function.
   local base_price_multiplier = f0*2.71828^((in_stock/desired_stock)*neg_ln[f0])
-  local today_buy = base_price * base_price_multiplier
+  local today_buy = base_price * base_price_multiplier * (1-tax_rate/100)
   local today_sell = base_price * base_price_multiplier * (1+tax_rate/100)
   g[planet].business[trade_good].buy_price = today_buy
   g[planet].business[trade_good].sell_price = today_sell

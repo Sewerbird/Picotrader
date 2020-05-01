@@ -3,7 +3,7 @@
 g = nil
 beepboops = {41,42,43,44,45,46}
 music_ticker = 3900
-win_amount = 1000 --k$
+win_amount = 100 --k$
 lose_amount = 0
 directions = {'left','right','up','down'}
 trade_good_keys = {"medicine","fuel","food","steel","weapons","robotics","tools","artwork"}
@@ -115,22 +115,47 @@ planet_types = {
 possible_events = {
   {
     change= function(planet,good) planet.business[good].inventory = 127 end,
-    text= function(planet,good) return "gLUT OF "..good.." ON "..planet end},
+    duration = 1,
+    text= function(planet,good) return "gLUT OF "..good.." ON "..planet end
+  },
+  {
+    change= function(planet,good) planet.business[good].inventory = 50 end,
+    duration = 1,
+    text= function(planet,good) return "sUPPLY OF "..good.." STABILIZES ON "..planet end
+  },
   {
     change= function(planet,good) planet.business[good].inventory = 0 end,
-    text= function(planet,good) return "sHORTAGE OF "..good.." ON "..planet end},
+    duration = 1,
+    text= function(planet,good) return "sHORTAGE OF "..good.." ON "..planet end
+  },
   {
-    change= function(planet,good) planet.business.tax_rate += 25 end,
-    unchange= function(planet,good) planet.business.tax_rate -= 25 end, 
-    text= function(planet,good) return "iMPERIAL EMBARGO OVER "..planet end},
+    change= function(planet,good) 
+      planet.business[good].base_price = 0 
+      planet.business[good].inventory = 0
+      planet.business[good].base_production -= 25
+    end,
+    unchange= function(planet,good) 
+      planet.business[good].base_price = trade_goods[good].base_price
+      planet.business[good].inventory = 0
+      planet.business[good].base_production += 25
+    end,
+    text= function(planet,good) return "eMPEROR CEASES "..good.." TRADE ON "..planet end
+  },
+  {
+    change= function(planet,good) planet.business.tax_rate += 75 end,
+    unchange= function(planet,good) planet.business.tax_rate -= 75 end, 
+    text= function(planet,good) return "hOUSE BLOCKADE OVER "..planet end
+  },
   {
     change= function(planet,good) planet.business[good].base_production += 5 end,
     unchange= function(planet,good) planet.business[good].base_production -= 5 end, 
-    text= function(planet,good) return "nEW JOBS FOR MAKING "..good.." ON "..planet end},
+    text= function(planet,good) return "nEW JOBS FOR MAKING "..good.." ON "..planet end
+  },
   {
     change= function(planet,good) planet.business[good].base_production -= 5 end,
     unchange= function(planet,good) planet.business[good].base_production += 5 end, 
-    text= function(planet,good) return "lAYOFFS FOR PRODUCERS OF "..good.." ON "..planet end},
+    text= function(planet,good) return "lAYOFFS FOR PRODUCERS OF "..good.." ON "..planet end
+  },
 }
 planet_keys = {}
 planet_info = {}

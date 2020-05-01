@@ -51,8 +51,7 @@ function draw_planet_scene(scene)
   --Name Label
   --if(btn(0) and btn(2)) then
   --else
-    rectfill(2,2,60,8,0)
-    print_text_in_rect(picture.label,2,2,60,8,13)
+    print_label(picture.label,2,2,60,8,13,0,0)
     --Interfaces
     for interface in all(g.active_interfaces) do
       g[interface]:draw()
@@ -88,16 +87,14 @@ function draw_warp_scene()
 end
 
 function draw_balance()
-  rectfill(127-34,0,127,8, 0)
-  rect(127-34,0,127,8, 1)
   local kilodollars = flr(g.player.wallet_balance)
   local dollars = flr(1000*(g.player.wallet_balance - flr(g.player.wallet_balance)))
   if kilodollars > 0 and dollars < 100 then dollars = "0"..dollars
   elseif kilodollars > 0 and dollars < 10 then dollars = "00"..dollars end
-  print_centered_text_in_rect("$"..(kilodollars>0 and (kilodollars..",") or "")..dollars,127-34,0,127,8,11)
-  rectfill(127-30,8,127,16, 0)
-  rect(127-34,8,127,16, 1)
-  print_centered_text_in_rect(""..flr(g.player.storage_used+0.5).."/"..flr(g.player.cargo_hold_size+0.5).."t",127-34,8,127,16,g.player.storage_remaining > 1 and 11 or 8)
+  local balance = "$"..(kilodollars>0 and (kilodollars..",") or "")..dollars
+  local cargo =""..flr(g.player.storage_used+0.5).."/"..flr(g.player.cargo_hold_size+0.5).."t" 
+  print_label(balance,127-34,0,127,8,11,0,1)
+  print_label(cargo,127-34,8,127,16,g.player.storage_remaining > 1 and 11 or 8,0,1)
 end
 
 function draw_news_ticker()
@@ -190,26 +187,15 @@ function popup_dialog(type, title, text, parent_interface, callbacks)
     current_splat = type == "yesno" and "yes" or "ok",
     settings = settings,
     draw = function(dialog)
-      --Background
       rectfill(l_x,t_y,l_x+w,t_y+h,1)
-      --Title
       print(title, l_x+w-title_w-1, t_y+2,12)
-      --Textarea
       print_text_in_rect(text, l_x+2,t_y+10,l_x+w,t_y+6+h,7)
-      --Border
       rect(l_x,t_y,l_x+w,t_y+h,2)
-      --Buttons
       if dialog.type == "yesno" then
-        rectfill(c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,13)
-        rect(c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,5)
-        print_centered_text_in_rect("yES",c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,7)
-        rectfill(c_x+b_o, t_y+h-b_h,c_x+b_w+b_o,t_y+h,13)
-        rect(c_x+b_o, t_y+h-b_h,c_x+b_w+b_o,t_y+h,5)
-        print_centered_text_in_rect("nO",c_x+b_o,t_y+h-b_h,c_x+b_w+b_o,t_y+h,7)
+        print_label("yES",c_x-b_w-b_o, t_y+h-b_h,c_x-b_o,t_y+h,7,13,5)
+        print_label("nO",c_x+b_o,t_y+h-b_h,c_x+b_w+b_o,t_y+h,7,13,5)
       else
-        rectfill(c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,13)
-        rect(c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,5)
-        print_centered_text_in_rect("oKAY",c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,7)
+        print_label("oKAY",c_x-b_w/2, t_y+h-b_h,c_x+b_w/2,t_y+h,7,13,5)
       end
       local cursor = dialog.splats[dialog.current_splat]
       if(cursor) then
@@ -217,7 +203,7 @@ function popup_dialog(type, title, text, parent_interface, callbacks)
       end
     end
   }
-  result.splats_ok = {
+  local splats_ok = {
     ["ok"] = {
       x = c_x-b_w/2, y= t_y+h-b_h, w = b_w, h= b_h,
       execute = function()
@@ -227,7 +213,7 @@ function popup_dialog(type, title, text, parent_interface, callbacks)
       end
     }
   }
-  result.splats_yesno = {
+  local splats_yesno = {
     ["yes"] = {
       x = c_x-b_w-b_o, y= t_y+h-b_h, w = b_w, h= b_h,
       right = "no",
@@ -247,11 +233,7 @@ function popup_dialog(type, title, text, parent_interface, callbacks)
       end
     }
   }
-  if type == "yesno" then
-    result.splats = result.splats_yesno
-  else
-    result.splats = result.splats_ok
-  end
+  result.splats = type == "yesno" and splats_yesno or splats_ok
   return result
 end
 
@@ -286,20 +268,19 @@ function purchase_interface(location)
         local sell_price = g[interface.current_location].business[key].buy_price
         local buy_price = g[interface.current_location].business[key].sell_price
         local avg_price = g.player.business[key].avg_price
-        rectfill(0,top,127, top+h, 5) --Background
-        rect(0,top,127, top+h, 1) --Background border
-        rectfill(left,top,left+w, top+h, 13) --Center column background
-        rect(left,top,left+w,top+h, 1) -- Center column border
-        spr(sprite_id, c_x-4, top+1) --Good Sprite
-        print_centered_text_in_rect("+$"..flr(sell_price+0.5), left, top, c_x-4-8, top+h, avg_price > sell_price and 8 or 11) --Sell Amount
-        print_centered_text_in_rect("-$"..flr(buy_price+0.5), c_x+4+8, top, left+w, top+h, avg_price < buy_price and 8 or 11) --Buy Amount
+        rectfill(0,top,127, top+h, 5)
+        rect(0,top,127, top+h, 1)
+        rectfill(left,top,left+w, top+h, 13)
+        rect(left,top,left+w,top+h, 1)
+        spr(sprite_id, c_x-4, top+1)
+        print_centered_text_in_rect("+$"..flr(sell_price+0.5), left, top, c_x-4-8, top+h, avg_price > sell_price and 8 or 11)
+        print_centered_text_in_rect("-$"..flr(buy_price+0.5), c_x+4+8, top, left+w, top+h, avg_price < buy_price and 8 or 11)
         trader_amount = g[interface.current_location].business[key].inventory
         player_amount = g.player.business[key].inventory
         print(trader_amount, 4, top+1+2, 11) --City Stock Amount
         print(player_amount, left+w+4, top+1+2, 11) --Ship Stock Amount
         i = i + 1
       end
-      --## Active Splat
       local cursor = interface.splats[interface.current_splat]
       if(cursor) then
         rect(cursor.x, cursor.y, cursor.x + cursor.w, cursor.y + cursor.h, 14)
@@ -371,9 +352,7 @@ function info_interface(location)
       local h_h = 8.4
       t_y -= 8
       for key, value in pairs(info) do
-        rectfill(l_x+w,t_y,127,t_y+h_h,1)
-        rect(l_x+w,t_y,127,t_y+h_h*2,1)
-        print_centered_text_in_rect(key,l_x+w,t_y,127,t_y+h_h,7)
+        print_label(key,l_x+w,t_y,127,t_y+h_h,7,1,1)
         print_centered_text_in_rect(value,l_x+w,t_y+h_h,127,t_y+h_h*2,7)
         t_y = t_y + h_h + h_h
       end

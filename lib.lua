@@ -1,3 +1,20 @@
+function inspect(v, key)
+  if key == nil then key = "" end
+  if type(v) == 'table' then
+    for k,e in pairs(v) do
+      inspect(e,key.."."..k)
+    end
+  elseif type(v) == 'boolean' then
+    printh(key..":"..(v and "true" or "false"))
+  elseif type(v) == 'function' then
+    printh(key..": [function]")
+  elseif v ~= nil then
+    printh(key..":"..v)
+  else
+    printh(key..": [nil]")
+  end
+end
+
 function append(a,b)
   for e in all(b) do
     add(a,e)
@@ -85,6 +102,15 @@ function print_centered_text_in_rect(text, x1, y1, x2, y2, col)
   local c_x = (x2-x1)/2 + x1
   local c_y = (y2-y1)/2 + y1 - 2
   print(text, c_x - w/2, c_y, col)
+end
+
+function print_label(text,x1,y1,x2,y2,text_color, background_color, border_color)
+  local w = #text * 4
+  local c_x = (x2-x1)/2 + x1
+  local c_y = (y2-y1)/2 + y1 - 2
+  rectfill(x1,y1,x2,y2,background_color)
+  print(text, c_x - w/2, c_y, text_color)
+  rect(x1,y1,x2,y2, border_color)
 end
 
 _memo_wrapped_strings = {}
